@@ -1,31 +1,26 @@
 {
-  "name": "steam-bot-manager",
-  "version": "1.0.20",
+  "name": "steam-bot-manager-fork",
+  "version": "1.1.0",
   "description": "Manage multiple Steam bots",
-  "main": "distribution/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel source --presets babel-preset-es2015 --out-dir distribution"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sebmorris/steam-bot-manager.git"
+    "url": "git+https://github.com/itsjfx/steam-bot-manager.git"
   },
-  "author": "Seb Morris (https://steamcommunity.com/id/oattty/)",
+  "author": "jfx (https://jfx.ac)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sebmorris/steam-bot-manager/issues"
+    "url": "https://github.com/itsjfx/steam-bot-manager/issues"
   },
-  "homepage": "https://github.com/sebmorris/steam-bot-manager#readme",
+  "homepage": "https://github.com/itsjfx/steam-bot-manager#readme",
   "dependencies": {
-    "steam-inventory-api": "^2.0.4",
-    "steam-totp": "^1.4.0",
-    "steam-tradeoffer-manager": "^2.5.0",
-    "steam-user": "^3.14.0",
-    "steamcommunity": "^3.30.1"
-  },
-  "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-preset-es2015": "^6.22.0"
+	"steam-inventory-api": "^2.0.10",
+    "steam-inventory-api-fork": "^2.1.0",
+    "steam-totp": "^2.1.0",
+    "steam-tradeoffer-manager": "^2.9.5",
+    "steam-user": "^4.5.0",
+	"steamcommunity": "^3.39.0"
   }
 }

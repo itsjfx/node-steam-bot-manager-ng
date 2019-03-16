@@ -11,116 +11,136 @@ let BotManager = function(options) {
 
 	this.domain = options.domain || 'localhost';
 	this.cancelTime = options.cancelTime || 420000;
-  this.inventoryApi = options.inventoryApi;
-  this.retryingLogin = false;
-  this.loggedIn = false;
-
+	this.inventoryApi = options.inventoryApi;
 	this.bots = [];
 };
 
 BotManager.prototype.addBot = function(loginDetails, managerEvents, type) {
-	//Create instances
-	let client = new SteamUser();
-	let manager = new TradeOfferManager({
-		steam: client,
-		domain: this.domain,
-		cancelTime: this.cancelTime
-	});
-	let community = new SteamCommunity();
+	let self = this;
 	return new Promise((resolve, reject) => {
+		//Create instances
+		let client = new SteamUser();
+		let community = new SteamCommunity();
+		let manager = new TradeOfferManager({
+			steam: client,
+			community: community,
+			domain: this.domain,
+			cancelTime: this.cancelTime
+		});
+		
 		if (managerEvents) {
-      manager.on('sessionExpired', (err) => {
-        if (this.retryingLogin) return;
-        console.log('Bot session expired', err);
-        console.log('Retrying login');
-        this.retryLogin();
-      });
-      managerEvents.forEach((event) => manager.on(event.name, event.cb));
+			managerEvents.forEach((event) => manager.on(event.name, event.cb));
 			console.log('Set manager events:\n\t- ' + managerEvents.map((event) => event.name));
 		}
-
-		loginDetails.twoFactorCode = SteamTotp.getAuthCode(loginDetails.shared);
-
-		client.logOn();
+		
+		let botIndex = self.bots.length;
+		
+		const botArrayLength = this.bots.push({
+			client: client,
+			manager: manager,
+			community: community,
+			loginInfo: loginDetails,
+			// apiKey: manager.apiKey,
+			// steamid: client.steamID.getSteamID64(),
+			botIndex: botIndex,
+			type: type,
+			loggedIn: false,
+			retryingLogin: false,
+		});
+		
+		
+		community.on('sessionExpired', (err) => {
+			console.log("Web Session expired, retrying login in 30 seconds");
+			self.bots[botIndex].loggedIn = false;
+			self.bots[botIndex].retryingLogin = false;
+			// if (self.bots[botIndex].retryingLogin) return console.log("Login already retrying");
+			setTimeout(() => {
+				self.retryLogin(botIndex)
+			}, 30000);
+			reject(err);
+		});
+		
+		client.on('error', (err) => {
+			console.log("Logged out of Steam, retrying login in 30 seconds");
+			self.bots[botIndex].loggedIn = false;
+			self.bots[botIndex].retryingLogin = false;
+			// if (self.bots[botIndex].retryingLogin) return console.log("Login already retrying!!");
+			setTimeout(() => {
+				self.retryLogin(botIndex);
+			}, 30000);
+			reject(err);
+		});
+		
 		client.on('loggedOn', (details) => {
-			if (details.eresult !== 1) return reject(details);
+			if (details.eresult !== 1) {
+				return reject(details);
+			}
+			self.bots[botIndex].steamid = client.steamID.getSteamID64();
 		});
-
-		client.on('webSession', function(sessionID, cookies) {
-			community.startConfirmationChecker(10000, loginDetails.identity);
-			community.setCookies(cookies);
-			resolve(cookies);
-		});
-	})
-	.then((cookies) => {
-		return new Promise((resolve, reject) => {
-			manager.setCookies(cookies, (err) => {
-				if (err) reject(err);
-				const botArrayLength = this.bots.push({
-					client: client,
-					manager: manager,
-					community: community,
-					loginInfo: loginDetails,
-					apiKey: manager.apiKey,
-					steamid: client.steamID.getSteamID64(),
-					botIndex: this.bots.length,
-					type: type
+		
+		client.on('webSession', (sessionID, cookies) => {
+			let login = new Promise((resolve, reject) => {
+				console.log("Replacing web session");
+				community.setCookies(cookies);
+				community.startConfirmationChecker(10000, loginDetails.identity);
+				manager.setCookies(cookies, (err) => {
+					if (err) reject(err);
+					self.bots[botIndex].apiKey = manager.apiKey;
+					self.bots[botIndex].community = community; // ?
+					self.bots[botIndex].loggedIn = true;
+					self.bots[botIndex].retryingLogin = false;
+					resolve(botIndex);
 				});
-        this.loggedIn = true;
-        this.retryingLogin = false;
-				resolve(this.bots[botArrayLength - 1]);
+			});
+			
+			login
+			.catch((err) => {
+				console.log(err);
+				console.log('Error logging back in, retrying in 1 min');
+				return new Promise((resolve) => {
+					setTimeout(resolve, 60 * 1000);
+				})
+				.then(() => {login})
+				reject(err);
+			})
+			.then((res) => {
+				console.log('Bot logged back in');
+				resolve(this.bots[botIndex]);
 			});
 		});
+		self.retryLogin(botIndex);
+		console.log("Bot added");
+		// resolve(self.retryLogin(botIndex));
 	});
 };
 
-BotManager.prototype.retryLogin = function() {
-  this.retryingLogin = true;
+BotManager.prototype.retryLogin = function(botIndex) {
+	let self = this;
+	self.bots[botIndex].retryingLogin = true;
+	console.log("Retrying login", botIndex);
+	
+	let bot = self.bots[botIndex];
+	//console.log(self.bots[botArrayLength-1]);
+	let loginDetails = bot.loginInfo;
+	//console.log(self.bots);
+	loginDetails.twoFactorCode = SteamTotp.getAuthCode(loginDetails.shared);
 
-  this.client.logOn();
-  function login() {
-    return new Promise((resolve, reject) => {
-      this.client.on('loggedOn', (details) => {
-        if (details.eresult !== 1) return reject(details);
-      });
-
-      client.on('webSession', function(sessionID, cookies) {
-        community.setCookies(cookies);
-        resolve(cookies);
-      });
-    });
-    .then((cookies) => {
-      return new Promise((resolve, reject) => {
-        manager.setCookies(cookies, (err) => {
-          if (err) reject(err);
-          this.loggedIn = true;
-          this.retryingLogin = false;
-        });
-      });
-    });
-  }
-
-  login()
-  .catch((err) => {
-    console.log('Error logging back in, retrying in 1 min');
-    return new Promise((resolve) => {
-      setTimeout(resolve, 60 * 1000);
-    })
-    .then(() => retryLogin);
-  })
-  .then((res) => {
-    console.log('Bot logged back in')
-    this.retryLogin = false;
-    this.loggedIn = true;
-  });
-};
+	if (!bot.client.steamID) { //If we need to log it into Steam
+		console.log("Logging into Steam Client");
+		bot.client.logOn(loginDetails);
+	} else { //We just need to refresh cookies, make a new webLogOn
+		bot.client.webLogOn();
+	}
+	return true;
+}
 
 BotManager.prototype.loadInventories = function(appid, contextid, tradableOnly) {
 	return Promise.all(this.bots.map((bot, i) => {
     return this.inventoryApi.get({
       appid,
       contextid,
-      retries: 3,
+      retries: 100,
+      retryDelay: 3000,
       steamid: bot.steamid,
       tradable: tradableOnly,
     })

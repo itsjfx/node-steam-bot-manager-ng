@@ -100,7 +100,7 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type) {
 				return new Promise((resolve) => {
 					setTimeout(resolve, 60 * 1000);
 				})
-				.then(() => {login})
+				.then(() => {self.retryLogin(botIndex)})
 				reject(err);
 			})
 			.then((res) => {

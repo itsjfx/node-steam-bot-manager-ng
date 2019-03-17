@@ -4,7 +4,7 @@ let SteamUser = require('steam-user');
 let SteamCommunity = require('steamcommunity');
 let SteamTotp = require('steam-totp');
 let TradeOfferManager = require('steam-tradeoffer-manager');
-let SteamInventoryAPI = require('steam-inventory-api');
+let SteamInventoryAPI = require('steam-inventory-api-fork');
 
 let BotManager = function(options) {
 	if (!options) options = {};

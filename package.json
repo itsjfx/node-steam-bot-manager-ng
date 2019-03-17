@@ -16,8 +16,6 @@
   },
   "homepage": "https://github.com/itsjfx/steam-bot-manager#readme",
   "dependencies": {
-	"steam-inventory-api": "^2.0.10",
-    "steam-inventory-api-fork": "^2.1.0",
     "steam-totp": "^2.1.0",
     "steam-tradeoffer-manager": "^2.9.5",
     "steam-user": "^4.5.0",

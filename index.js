@@ -116,6 +116,7 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type) {
 
 BotManager.prototype.retryLogin = function(botIndex) {
 	let self = this;
+	if (self.bots[botIndex].retryingLogin == true) return console.log("Already retrying");
 	self.bots[botIndex].retryingLogin = true;
 	console.log("Retrying login", botIndex);
 	

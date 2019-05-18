@@ -105,7 +105,7 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type) {
 			})
 			.then((res) => {
 				console.log('Bot logged back in');
-				resolve(this.bots[botIndex]);
+				resolve(self.bots[botIndex]);
 			});
 		});
 		self.retryLogin(botIndex);

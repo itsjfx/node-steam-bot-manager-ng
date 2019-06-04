@@ -46,6 +46,7 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type) {
 			type: type,
 			loggedIn: false,
 			retryingLogin: false,
+			initialLogin: true
 		});
 		
 		
@@ -105,7 +106,12 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type) {
 			})
 			.then((res) => {
 				console.log('Bot logged back in');
-				resolve(self.bots[botIndex]);
+				if (self.bots[botIndex].initialLogin) {
+					self.bots[botIndex].initialLogin = false;
+					resolve(self.bots[botIndex]);
+				} else {
+					return;
+				}
 			});
 		});
 		self.retryLogin(botIndex);

@@ -73,10 +73,19 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type) {
 		});
 		
 		client.on('loggedOn', (details) => {
-			if (details.eresult !== 1) {
+			if (details.eresult !== 1 && self.bots[botIndex].initialLogin) {
 				return reject(details);
 			}
 			self.bots[botIndex].steamid = client.steamID.getSteamID64();
+		});
+		
+		client.on('steamGuard', (domain, callback) => {
+			if (domain == null) {
+				console.log("Steam guard code failed, re-retrying in 30 seconds...");
+				setTimeout(function(){
+					callback(SteamTotp.getAuthCode(self.bots[botIndex].loginInfo.shared));
+				}, 30 * 1000);
+			}
 		});
 		
 		client.on('webSession', (sessionID, cookies) => {
@@ -102,7 +111,8 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type) {
 					setTimeout(resolve, 60 * 1000);
 				})
 				.then(() => {self.retryLogin(botIndex)})
-				reject(err);
+				// if (self.bots[botIndex].initialLogin)
+					// reject(err);
 			})
 			.then((res) => {
 				console.log('Bot logged back in');

@@ -58,7 +58,7 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type) {
 			setTimeout(() => {
 				self.retryLogin(botIndex)
 			}, 30000);
-			reject(err);
+			// reject(err);
 		});
 		
 		client.on('error', (err) => {
@@ -69,7 +69,7 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type) {
 			setTimeout(() => {
 				self.retryLogin(botIndex);
 			}, 30000);
-			reject(err);
+			// reject(err);
 		});
 		
 		client.on('loggedOn', (details) => {

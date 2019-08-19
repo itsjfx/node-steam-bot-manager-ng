@@ -14,7 +14,7 @@ let BotManager = function(options) {
 	this.bots = [];
 };
 
-BotManager.prototype.addBot = function(loginDetails, managerEvents, type) {
+BotManager.prototype.addBot = function(loginDetails, managerEvents, type, pollData) {
 	let self = this;
 	return new Promise((resolve, reject) => {
 		//Create instances
@@ -26,6 +26,11 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type) {
 			domain: this.domain,
 			cancelTime: this.cancelTime
 		});
+		
+		if (pollData) {
+			manager.pollData = JSON.parse(pollData);
+			console.log("Set pollData");
+		}
 		
 		if (managerEvents) {
 			managerEvents.forEach((event) => manager.on(event.name, event.cb));

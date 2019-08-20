@@ -28,7 +28,7 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type, pollDa
 		});
 		
 		if (pollData) {
-			manager.pollData = JSON.parse(pollData);
+			manager.pollData = pollData;
 			console.log("Set pollData");
 		}
 		

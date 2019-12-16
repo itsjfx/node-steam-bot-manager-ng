@@ -53,6 +53,13 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type, pollDa
 			initialLogin: true
 		});
 		
+		if (loginDetails.identity) {
+			community.on('confKeyNeeded', (tag, callback) => {
+				let time = Math.floor(Date.now() / 1000);
+				callback(null, time, SteamTotp.getConfirmationKey(loginDetails.identity, time, tag));
+			});
+		}
+		
 		
 		community.on('sessionExpired', (err) => {
 			console.log("Web Session expired, retrying login in 30 seconds");
@@ -98,13 +105,7 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type, pollDa
 			let login = new Promise((resolve, reject) => {
 				console.log("Replacing web session");
 				community.setCookies(cookies);
-				if (loginDetails.identity) {
-					community.startConfirmationChecker(10000);
-					community.on('confKeyNeeded', (tag, callback) => {
-						let time = Math.floor(Date.now() / 1000);
-						callback(null, time, SteamTotp.getConfirmationKey(loginDetails.identity, time, tag));
-					});
-				}
+				if (loginDetails.identity) community.startConfirmationChecker(10000);
 				manager.setCookies(cookies, (err) => {
 					if (err) reject(err);
 					self.bots[botIndex].apiKey = manager.apiKey;

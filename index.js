@@ -55,8 +55,12 @@ BotManager.prototype.addBot = function(loginDetails, managerEvents, type, pollDa
 		
 		if (loginDetails.identity) {
 			community.on('confKeyNeeded', (tag, callback) => {
-				let time = Math.floor(Date.now() / 1000);
-				callback(null, time, SteamTotp.getConfirmationKey(loginDetails.identity, time, tag));
+				if (tag == 'details') { // Block details calls so we don't make an extra request for getting the offer ID when we can determine it from creator and type property (not working)
+					callback(new Error("Disabled"));
+				} else {
+					let time = Math.floor(Date.now() / 1000);
+					callback(null, time, SteamTotp.getConfirmationKey(loginDetails.identity, time, tag));
+				}
 			});
 		}
 		

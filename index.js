@@ -1,18 +1,15 @@
-const SteamUser = require('steam-user');
-const SteamCommunity = require('steamcommunity');
-const SteamTotp = require('steam-totp');
-const TradeOfferManager = require('steam-tradeoffer-manager');
 const EventEmitter = require('events').EventEmitter;
+const Bot = require('./classes/Bot.js');
 
 /**
  * Our BotManager, extends EventEmitter to have an in-built EventEmitter for logging under 'log'.
  * @class
+ * @extends EventEmitter
  */
 class BotManager extends EventEmitter {
 	/**
 	 * A Bot Manager instance
 	 * @constructor
-	 * @extends EventEmitter
 	 * @param {Object} [options] - contains optional settings for the bot manager
 	 * @param {number} [options.cancelTime] - cancelTime in ms that node-tradeoffer-manager will cancel an outgoing offer
 	 * @param {Object} [options.inventoryApi] - steam-inventory-api-fork inventoryApi instance which is used in any inventory functions in the bot manager
@@ -26,10 +23,11 @@ class BotManager extends EventEmitter {
 		super();
 		if (!options)
 			options = {};
-		this.cancelTime = options.cancelTime;
-		this.inventoryApi = options.inventoryApi;
-		this.loginRetryTime = options.loginRetryTime || 30;
-		this.defaultConfirmationChecker = options.defaultConfirmationChecker || {};
+		this.options = options;
+		this.options.cancelTime = options.cancelTime;
+		this.options.inventoryApi = options.inventoryApi;
+		this.options.loginRetryTime = options.loginRetryTime || 30;
+		this.options.defaultConfirmationChecker = options.defaultConfirmationChecker || {};
 		this.bots = [];
 	}
 
@@ -52,174 +50,39 @@ class BotManager extends EventEmitter {
 	 * @returns {Promise} - Promise object which will resolve once the bot has successfully logged in for the first time. Returns the bot object which will contain the manager, community and client (and other things related to the bot). Rejects on the first login if something goes wrong.
 	 */
 	addBot(loginInfo, managerEvents, pollData) {
-		return new Promise((resolve, reject) => {
-			// Create instances
-			let client = new SteamUser();
-			let community = new SteamCommunity();
-			let manager = new TradeOfferManager({
-				steam: client,
-				community: community,
-				domain: 'localhost',
-				cancelTime: this.cancelTime
-			});
+		if (loginInfo.id && this.botFromId(loginInfo.id)) {
+			this.emit('log', 'error', `A bot with identifier: ${loginInfo.id} already exists`);
+			throw new Error(`A bot with identifier: ${loginInfo.id} already exists`);
+		}
 
-			if (pollData) {
-				manager.pollData = pollData;
-				this.emit('log', 'debug', 'Set pollData');
-			}
+		if (loginInfo.accountName && this.botFromAccountName(loginInfo.accountName)) {
+			this.emit('log', 'error', `A bot with accountName: ${loginInfo.accountName} already exists`);
+			throw new Error(`A bot with accountName: ${loginInfo.accountName} already exists`);
+		}
 
-			if (managerEvents) {
-				managerEvents.forEach((event) => manager.on(event.name, event.cb));
-				this.emit('log', 'debug', 'Set manager events: \n\t- ' + managerEvents.map((event) => event.name));
-			}
-
-			if (loginInfo.id && this.botFromId(loginInfo.id)) {
-				this.emit('log', 'error', `A bot with identifier: ${loginInfo.id} already exists`);
-				return reject(new Error(`A bot with identifier: ${loginInfo.id} already exists`));
-			}
-
-			if (this.botFromAccountName(loginInfo.accountName)) {
-				this.emit('log', 'error', `A bot with accountName: ${loginInfo.accountName} already exists`);
-				return reject(new Error(`A bot with accountName: ${loginInfo.accountName} already exists`));
-			}
-
-			let botIndex = this.bots.length;
-			this.bots.push({
-				client: client,
-				manager: manager,
-				community: community,
-				loginInfo: loginInfo,
-				apiKey: null,
-				steamid: null,
-				botIndex: botIndex,
-				type: loginInfo.type,
-				id: loginInfo.id,
-				loggedIn: false,
-				retryingLogin: false,
-				initialLogin: true
-			});
-
-			if (loginInfo.identity && !loginInfo.confirmationChecker) {
-				this.emit('log', 'debug', `Using default confirmation checker settings for bot ${loginInfo.accountName}`);
-				loginInfo.confirmationChecker = this.defaultConfirmationChecker;
-			}
-
-			if (loginInfo.identity && loginInfo.confirmationChecker.type === 'manual') {
-				community.on('confKeyNeeded', (tag, callback) => {
-					// Disabling this as this call never gets called, since we can reuse details
-                    /*if (tag == 'details') { // Block details calls so we don't make an extra request for getting the offer ID when we can determine it from creator and type property (not working)
-                        callback(new Error("Disabled"));
-                    }*/
-					let time = SteamTotp.time();
-					callback(null, time, SteamTotp.getConfirmationKey(loginInfo.identity, time, tag));
-				});
-			}
-
-			community.on('sessionExpired', (err) => {
-				this.emit('log', 'error', `Bot ${loginInfo.accountName}'s web session expired, retrying login in ${this.loginRetryTime} seconds`);
-				this.emit('log', 'stack', err);
-				this.bots[botIndex].loggedIn = false;
-				this.retryLogin(botIndex, this.loginRetryTime * 1000);
-			});
-
-			client.on('error', (err) => {
-				this.emit('log', 'error', `Bot ${loginInfo.accountName} was logged out of Steam client, retrying login in ${this.loginRetryTime} seconds`);
-				this.emit('log', 'stack', err);
-				this.bots[botIndex].loggedIn = false;
-				this.retryLogin(botIndex, this.loginRetryTime * 1000);
-			});
-
-			client.on('loggedOn', (details) => {
-				if (details.eresult !== 1 && this.bots[botIndex].initialLogin) {
-					return reject(details);
-				}
-				this.bots[botIndex].steamid = client.steamID.getSteamID64();
-			});
-
-			if (loginInfo.shared) {
-				client.on('steamGuard', (domain, callback) => {
-					if (domain == null) { // An app code, we can generate it with 2FA
-						this.emit('log', 'error', `2FA code failed, retrying in 30 seconds`);
-						setTimeout(() => {
-							callback(SteamTotp.getAuthCode(this.bots[botIndex].loginInfo.shared)); // 30 seconds is the max time for a 2FA code
-						}, 30 * 1000);
-					} else { // Taken from node-steam-user, if it's not an app code then it needs to be prompted. As we have a steamGuard listener the module will expect us to have a code for it
-						let rl = require('readline').createInterface({
-							"input": process.stdin,
-							"output": process.stdout
-						});
-				
-						rl.question('Steam Guard Code: ', (code) => {
-							rl.close();
-							callback(code);
-						});
-					}
-				});
-			}
-
-			client.on('webSession', (sessionID, cookies) => {
-				let login = new Promise((resolve, reject) => {
-					this.emit('log', 'debug', `Replacing web session`);
-					community.setCookies(cookies);
-					if (loginInfo.identity && loginInfo.confirmationChecker.type === 'manual') {
-						community.startConfirmationChecker(loginInfo.confirmationChecker.pollInterval);
-					} else if (loginInfo.identity && loginInfo.confirmationChecker.type === 'auto') {
-						community.startConfirmationChecker(loginInfo.confirmationChecker.pollInterval, loginInfo.identity);
-					}
-					manager.setCookies(cookies, (err) => {
-						if (err)
-							return reject(err);
-						this.bots[botIndex].apiKey = manager.apiKey;
-						this.bots[botIndex].loggedIn = true;
-						this.bots[botIndex].retryingLogin = false;
-						resolve(botIndex);
-					});
-				});
-
-				login
-				.catch((err) => {
-					this.emit('log', 'error', `Error logging back in, retrying in ${this.loginRetryTime} seconds`);
-					this.emit('log', 'stack', err);
-					this.retryLogin(botIndex, this.loginRetryTime * 1000);
-				})
-				.then((res) => {
-					this.emit('log', 'debug', `Bot ${this.bots[botIndex].loginInfo.accountName} logged in`);
-					if (this.bots[botIndex].initialLogin) {
-						this.bots[botIndex].initialLogin = false;
-						resolve(this.bots[botIndex]); // If it was our first login, we resolve the addBot call once it's logged in the first time
-					}
-				});
-			});
-
-			this.retryLogin(botIndex);
-			this.emit('log', 'debug', `Added bot ${loginInfo.accountName}`);
-		});
+		const bot = new Bot(loginInfo, this.options, this.bots.length, managerEvents, pollData);
+		this.bots.push(bot);
+		bot.on('log', (type, log) => this.emit('log', type, log));
+		return bot._initialLogin();
 	}
 
 	/**
 	 * Triggers the login for the bot, which is handled in the events in addBot. Used when initially logging in also.
+	 * Alias of login
 	 * @param {number} botIndex - the index in the bots array for the bot we wish to relogin
 	 * @param {number} timer - the time in ms we want to wait before we log the bot in
 	 */
 	retryLogin(botIndex, timer = 0) {
-		if (this.bots[botIndex].retryingLogin == true)
-			return this.emit('log', 'error', `A login is already queued, blocking attempt`);
+		this.bots[botIndex].retryLogin(timer);
+	}
 
-		this.bots[botIndex].retryingLogin = true;
-		setTimeout(() => {
-			let bot = this.bots[botIndex];
-			this.emit('log', 'debug', `Logging into ${bot.loginInfo.accountName}`);
-			let loginInfo = bot.loginInfo;
-			if (loginInfo.shared)
-				loginInfo.twoFactorCode = SteamTotp.getAuthCode(loginInfo.shared);
-
-			if (!bot.client.steamID) { // If we need to log it into Steam
-				this.emit('log', 'debug', `Logging into Steam Client`);
-				bot.client.logOn(loginInfo);
-			} else { // We just need to refresh cookies, make a new webLogOn
-				bot.client.webLogOn();
-			}
-		}, timer);
+	/**
+	 * Triggers the login for a bot, which is handled in the events in addBot. Used when initially logging in also.
+	 * @param {number} botIndex - the index in the bots array for the bot we wish to relogin
+	 * @param {number} timer - the time in ms we want to wait before we log the bot in
+	 */
+	login(botIndex, timer = 0) {
+		this.bots[botIndex].retryLogin(timer);
 	}
 
 	/**
@@ -231,10 +94,10 @@ class BotManager extends EventEmitter {
 	 */
 	loadInventories(appid, contextid, tradableOnly) {
 		return Promise.all(this.bots.map((bot, i) => {
-			return this.inventoryApi.get({
+			return this.options.inventoryApi.get({
 				appid,
 				contextid,
-				retries: 100,
+				retries: 10000,
 				retryDelay: 3000,
 				steamid: bot.steamid,
 				tradable: tradableOnly,

@@ -1,1 +1,1 @@
-jsdoc2md -f index.js > doc.md
+jsdoc2md -f index.js classes/Bot.js > doc.md

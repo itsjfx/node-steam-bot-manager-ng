@@ -4,11 +4,11 @@ module.exports = [
 		password: '',
 		shared: '',
 		identity: '',
-		type: 'main',
-		id: 'main',
+		type: '',
+		id: '',
 		//confirmationChecker: {type: "auto", pollInterval: 10000}
 	},
-	{
+	/*{
 		accountName: '',
 		password: '',
 		shared: '',
@@ -25,5 +25,5 @@ module.exports = [
 		type: 'storage',
 		//id: '',
 		//confirmationChecker: {type: "auto", pollInterval: 10000}
-	}
+	}*/
 ];

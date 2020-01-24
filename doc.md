@@ -1,3 +1,14 @@
+## Classes
+
+<dl>
+<dt><a href="#BotManager">BotManager</a> ⇐ <code>EventEmitter</code></dt>
+<dd><p>Our BotManager, extends EventEmitter to have an in-built EventEmitter for logging under &#39;log&#39;.</p>
+</dd>
+<dt><a href="#Bot">Bot</a> ⇐ <code>EventEmitter</code></dt>
+<dd><p>Our Bot, extends EventEmitter to have an in-built EventEmitter for logging under &#39;log&#39;.</p>
+</dd>
+</dl>
+
 <a name="BotManager"></a>
 
 ## BotManager ⇐ <code>EventEmitter</code>
@@ -10,6 +21,7 @@ Our BotManager, extends EventEmitter to have an in-built EventEmitter for loggin
     * [new BotManager([options])](#new_BotManager_new)
     * [.addBot(loginInfo, [managerEvents], [pollData])](#BotManager+addBot) ⇒ <code>Promise</code>
     * [.retryLogin(botIndex, timer)](#BotManager+retryLogin)
+    * [.login(botIndex, timer)](#BotManager+login)
     * [.loadInventories(appid, contextid, tradableOnly)](#BotManager+loadInventories) ⇒ <code>Promise</code>
     * [.botIndexFromSteamid(steamid)](#BotManager+botIndexFromSteamid) ⇒ <code>number</code>
     * [.botSteamidFromIndex(botIndex)](#BotManager+botSteamidFromIndex) ⇒ <code>string</code>
@@ -67,6 +79,19 @@ Adds a new bot to the bot manager.
 
 ### botManager.retryLogin(botIndex, timer)
 Triggers the login for the bot, which is handled in the events in addBot. Used when initially logging in also.
+Alias of login
+
+**Kind**: instance method of [<code>BotManager</code>](#BotManager)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| botIndex | <code>number</code> |  | the index in the bots array for the bot we wish to relogin |
+| timer | <code>number</code> | <code>0</code> | the time in ms we want to wait before we log the bot in |
+
+<a name="BotManager+login"></a>
+
+### botManager.login(botIndex, timer)
+Triggers the login for a bot, which is handled in the events in addBot. Used when initially logging in also.
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
 
@@ -198,4 +223,38 @@ Gets the number of bot object for a given botIndex
 | Param | Type | Description |
 | --- | --- | --- |
 | botIndex | <code>number</code> | the index of the bot in the bots array |
+
+<a name="Bot"></a>
+
+## Bot ⇐ <code>EventEmitter</code>
+Our Bot, extends EventEmitter to have an in-built EventEmitter for logging under 'log'.
+
+**Kind**: global class  
+**Extends**: <code>EventEmitter</code>  
+
+* [Bot](#Bot) ⇐ <code>EventEmitter</code>
+    * [.login(timer)](#Bot+login)
+    * [.retryLogin(timer)](#Bot+retryLogin)
+
+<a name="Bot+login"></a>
+
+### bot.login(timer)
+Triggers the login for the bot, which is handled in the events in addBot. Used when initially logging in also.
+
+**Kind**: instance method of [<code>Bot</code>](#Bot)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| timer | <code>number</code> | <code>0</code> | the time in ms we want to wait before we log the bot in |
+
+<a name="Bot+retryLogin"></a>
+
+### bot.retryLogin(timer)
+Triggers the login for the bot, which is handled in the events in addBot. Used when initially logging in also.Alias of login
+
+**Kind**: instance method of [<code>Bot</code>](#Bot)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| timer | <code>number</code> | <code>0</code> | the time in ms we want to wait before we log the bot in |
 

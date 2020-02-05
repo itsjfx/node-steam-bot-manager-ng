@@ -44,7 +44,7 @@ A Bot Manager instance
 | --- | --- | --- | --- |
 | [options] | <code>Object</code> |  | contains optional settings for the bot manager |
 | [options.cancelTime] | <code>number</code> |  | cancelTime in ms that node-tradeoffer-manager will cancel an outgoing offer |
-| [options.inventoryApi] | <code>Object</code> |  | steam-inventory-api-fork inventoryApi instance which is used in any inventory functions in the bot manager |
+| [options.inventoryApi] | <code>Object</code> |  | steam-inventory-api-ng inventoryApi instance which is used in any inventory functions in the bot manager |
 | [options.loginRetryTime] | <code>number</code> | <code>30</code> | retry time in seconds for how long we should wait before logging back into an account once being logged out |
 | [options.defaultConfirmationChecker] | <code>Object</code> |  | settings for the default behaviour for confirmation checking. Omit if you do not want confirmation checking to be applied by default. https://github.com/DoctorMcKay/node-steamcommunity/wiki/Steam-Confirmation-Polling |
 | [options.defaultConfirmationChecker.type] | <code>string</code> |  | "manual" or "auto" - manual will not have the identity secret passed into startConfirmationChecker, whereas auto will - and auto will accept any mobile confirmation. |

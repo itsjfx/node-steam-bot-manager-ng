@@ -12,7 +12,7 @@ class BotManager extends EventEmitter {
 	 * @constructor
 	 * @param {Object} [options] - contains optional settings for the bot manager
 	 * @param {number} [options.cancelTime] - cancelTime in ms that node-tradeoffer-manager will cancel an outgoing offer
-	 * @param {Object} [options.inventoryApi] - steam-inventory-api-fork inventoryApi instance which is used in any inventory functions in the bot manager
+	 * @param {Object} [options.inventoryApi] - steam-inventory-api-ng inventoryApi instance which is used in any inventory functions in the bot manager
 	 * @param {number} [options.loginRetryTime=30] - retry time in seconds for how long we should wait before logging back into an account once being logged out
 	 * @param {Object} [options.defaultConfirmationChecker] - settings for the default behaviour for confirmation checking. Omit if you do not want confirmation checking to be applied by default. https://github.com/DoctorMcKay/node-steamcommunity/wiki/Steam-Confirmation-Polling
 	 * @param {string} [options.defaultConfirmationChecker.type] - "manual" or "auto" - manual will not have the identity secret passed into startConfirmationChecker, whereas auto will - and auto will accept any mobile confirmation.
@@ -94,16 +94,15 @@ class BotManager extends EventEmitter {
 	 */
 	loadInventories(appid, contextid, tradableOnly) {
 		return Promise.all(this.bots.map((bot, i) => {
-			return this.options.inventoryApi.get({
+			return this.options.inventoryApi.get(
+				bot.steamid,
 				appid,
 				contextid,
-				retries: 10000,
-				retryDelay: 3000,
-				steamid: bot.steamid,
-				tradable: tradableOnly,
-			})
+				tradableOnly,
+				10000
+			)
 			.then((res) => {
-				const inventory = res.items;
+				const inventory = res.inventory;
 				inventory.forEach((item) => item.botIndex = i);
 				return inventory;
 			});

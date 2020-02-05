@@ -1,13 +1,9 @@
 const BotManager = require('../index.js');
 const loginInfo = require('./config.js');
 
-const InventoryApi = require('steam-inventory-api-fork'); // Optional inventory API for the loadInventories call. Omit if you wish not to use.
+const InventoryApi = require('steam-inventory-api-ng'); // Optional inventory API for the loadInventories call. Omit if you wish not to use.
 
-const inventoryApi = Object.create(InventoryApi);
-
-inventoryApi.init({
-	id: 'Name of inventoryApi instance'
-});
+const inventoryApi = new InventoryApi();
 
 // Default values of the bot manager, except for the inventoryApi which is optional.
 const botManager = new BotManager({

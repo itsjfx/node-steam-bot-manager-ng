@@ -45,7 +45,7 @@ You can still hook onto any of the events from node-steamcommunity and node-stea
 
 ## What is this inventory api thing
 
-It's an inventory api for Steam with some advanced features... that's also pending a rewrite instead of being a fork. Ignore it if you don't want to use it as it is entirely optional.
+It's an inventory api for Steam with some advanced features. Link here: https://github.com/itsjfx/node-steam-inventory-api-ng Ignore it if you don't want to use it as it is entirely optional.
 
 ## Confirmation polling
 

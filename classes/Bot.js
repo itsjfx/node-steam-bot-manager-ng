@@ -114,6 +114,7 @@ class Bot extends EventEmitter {
 			if (loginInfo.shared)
 				loginInfo.twoFactorCode = SteamTotp.getAuthCode(loginInfo.shared);
 
+			this.retryingLogin = false; // Move the retry login here since we cannot handle all errors
 			if (!this.client.steamID) { // If we need to log it into Steam
 				this.emit('log', 'debug', `Logging into Steam Client`);
 				this.client.logOn(loginInfo);

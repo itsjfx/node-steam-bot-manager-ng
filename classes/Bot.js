@@ -159,7 +159,7 @@ class Bot extends EventEmitter {
 							return reject(err);
 						this.apiKey = this.manager.apiKey;
 						this.loggedIn = true;
-						this.retryingLogin = false;
+						//this.retryingLogin = false;
 						resolve(this.botIndex);
 					});
 				});

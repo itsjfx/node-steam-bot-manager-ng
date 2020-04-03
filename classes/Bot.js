@@ -110,7 +110,7 @@ class Bot extends EventEmitter {
 		this.retryingLogin = true;
 		setTimeout(() => {
 			let loginInfo = this.loginInfo;
-			this.emit('log', 'debug', `Logging into ${loginInfo.accountName}`);
+			this.emit('log', 'info', `Logging into ${loginInfo.accountName}`);
 			if (loginInfo.shared)
 				loginInfo.twoFactorCode = SteamTotp.getAuthCode(loginInfo.shared);
 
@@ -119,6 +119,7 @@ class Bot extends EventEmitter {
 				this.emit('log', 'debug', `Logging into Steam Client`);
 				this.client.logOn(loginInfo);
 			} else { // We just need to refresh cookies, make a new webLogOn
+				this.emit('log', 'debug', `Requesting web session`);
 				this.client.webLogOn();
 			}
 		}, timer);
@@ -171,7 +172,7 @@ class Bot extends EventEmitter {
 					this.retryLogin(this.options.loginRetryTime * 1000);
 				})
 				.then((res) => {
-					this.emit('log', 'debug', `Bot ${this.loginInfo.accountName} logged in`);
+					this.emit('log', 'info', `Bot ${this.loginInfo.accountName} logged in`);
 					if (this.initialLogin) {
 						this.initialLogin = false;
 						resolve(this); // If it was our first login, we resolve the call once it's logged in the first time

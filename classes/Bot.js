@@ -10,7 +10,7 @@ const EventEmitter = require('events').EventEmitter;
  * @extends EventEmitter
  */
 class Bot extends EventEmitter {
-	constructor(loginInfo, options, botIndex, managerEvents, pollData) {
+	constructor(botManager, loginInfo, options, botIndex, managerEvents, pollData) {
 		super();
 		// Bot vars
 		this.loginInfo = loginInfo;
@@ -23,6 +23,8 @@ class Bot extends EventEmitter {
 		this.retryingLogin = false;
 		this.initialLogin = true;
 		this.options = options;
+
+		this.botManager = botManager;
 
 		// Create instances
 		this.client = new SteamUser();
@@ -106,6 +108,13 @@ class Bot extends EventEmitter {
 	login(timer = 0) {
 		if (this.retryingLogin == true)
 			return this.emit('log', 'error', `A login is already queued, blocking attempt`);
+
+		if (!this.initialLogin) {
+			if (this.botManager.recentLogins >= this.botManager.options.loginInterval.limit)
+				return this.emit('log', 'error', `Maximum of logins hit for interval, blocking attempt`);
+
+			this.botManager.recentLogins++;
+		}
 
 		this.retryingLogin = true;
 		setTimeout(() => {

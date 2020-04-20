@@ -49,6 +49,9 @@ A Bot Manager instance
 | [options.defaultConfirmationChecker] | <code>Object</code> |  | settings for the default behaviour for confirmation checking. Omit if you do not want confirmation checking to be applied by default. https://github.com/DoctorMcKay/node-steamcommunity/wiki/Steam-Confirmation-Polling |
 | [options.defaultConfirmationChecker.type] | <code>string</code> |  | "manual" or "auto" - manual will not have the identity secret passed into startConfirmationChecker, whereas auto will - and auto will accept any mobile confirmation. |
 | [options.defaultConfirmationChecker.pollInterval] | <code>number</code> |  | the interval in ms for which it checks. 10000 is a safe amount and will avoid rate limiting. |
+| [options.loginInterval] | <code>Object</code> |  | an object containing login interval settings |
+| [options.loginInterval.time] | <code>number</code> |  | time in seconds for the interval to last |
+| [options.loginInterval.limit] | <code>number</code> |  | the number of logins we can make in this interval before we start blocking |
 
 <a name="BotManager+addBot"></a>
 

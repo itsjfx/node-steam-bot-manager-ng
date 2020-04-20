@@ -17,6 +17,9 @@ class BotManager extends EventEmitter {
 	 * @param {Object} [options.defaultConfirmationChecker] - settings for the default behaviour for confirmation checking. Omit if you do not want confirmation checking to be applied by default. https://github.com/DoctorMcKay/node-steamcommunity/wiki/Steam-Confirmation-Polling
 	 * @param {string} [options.defaultConfirmationChecker.type] - "manual" or "auto" - manual will not have the identity secret passed into startConfirmationChecker, whereas auto will - and auto will accept any mobile confirmation.
 	 * @param {number} [options.defaultConfirmationChecker.pollInterval] - the interval in ms for which it checks. 10000 is a safe amount and will avoid rate limiting.
+	 * @param {Object} [options.loginInterval] - an object containing login interval settings
+	 * @param {number} [options.loginInterval.time] - time in seconds for the interval to last
+	 * @param {number} [options.loginInterval.limit] - the number of logins we can make in this interval before we start blocking
 	 * 
 	 */
 	constructor(options) {
@@ -28,7 +31,15 @@ class BotManager extends EventEmitter {
 		this.options.inventoryApi = options.inventoryApi;
 		this.options.loginRetryTime = options.loginRetryTime || 30;
 		this.options.defaultConfirmationChecker = options.defaultConfirmationChecker || {};
+		this.options.loginInterval = options.limitInterval || {};
+		this.options.loginInterval.time = this.options.loginInterval.time || 120;
+		this.options.loginInterval.limit = this.options.loginInterval.limit || 2;
 		this.bots = [];
+
+		this.recentLogins = 0;
+		setInterval(() => {
+			this.recentLogins = 0;
+		}, this.options.loginInterval.time * 1000)
 	}
 
 	/**
@@ -60,7 +71,7 @@ class BotManager extends EventEmitter {
 			throw new Error(`A bot with accountName: ${loginInfo.accountName} already exists`);
 		}
 
-		const bot = new Bot(loginInfo, this.options, this.bots.length, managerEvents, pollData);
+		const bot = new Bot(this, loginInfo, this.options, this.bots.length, managerEvents, pollData);
 		this.bots.push(bot);
 		bot.on('log', (type, log) => this.emit('log', type, log));
 		return bot._initialLogin();

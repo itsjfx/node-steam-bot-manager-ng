@@ -1,6 +1,6 @@
 {
   "name": "steam-bot-manager-ng",
-  "version": "2.1.3",
+  "version": "2.2.0",
   "description": "Easily manage multiple Steam bots",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,10 +16,10 @@
   },
   "homepage": "https://github.com/itsjfx/node-steam-bot-manager-ng#readme",
   "dependencies": {
-    "steam-inventory-api-ng": "^1.0.4",
+    "steam-inventory-api-ng": "^1.0.6",
     "steam-totp": "^2.1.1",
     "steam-tradeoffer-manager": "^2.10.1",
-    "steam-user": "^4.12.5",
+    "steam-user": "^4.14.0",
     "steamcommunity": "^3.41.3"
   }
 }

@@ -39,12 +39,10 @@ Promise.all(loginInfo.map(details => { // Promise to login all bots at once
 }))
 .then(bots => {
 	console.log(`All ${bots.length} bots have been logged in`);
-	botManager.botObjectFromId("1").login();
-	setTimeout(()=>{botManager.botObjectFromId("1").login()}, 2000);
-	setTimeout(()=>{botManager.botObjectFromId("1").login()}, 5000);
-	setTimeout(()=>{botManager.botObjectFromId("1").login()}, 8000);
-	setTimeout(()=>{botManager.botObjectFromId("1").login()}, 12000);
-	setTimeout(()=>{console.log("BOt 1 " + botManager.botObjectFromId("1").loggedIn + botManager.botObjectFromId("2").loggedIn)}, 15000);
+	return botManager.loadInventories(730, 2, true);
+})
+.then(items => {
+	console.log(`${items.length} items found in the bot's inventories`);
 })
 .catch(err => {
 	console.log(`Error with bot manager`, err);

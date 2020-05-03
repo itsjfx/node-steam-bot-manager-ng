@@ -33,7 +33,11 @@ class Bot extends EventEmitter {
 			steam: this.client,
 			community: this.community,
 			domain: 'localhost',
-			cancelTime: options.cancelTime
+			cancelTime: options.cancelTime,
+			language: options.assetSettings.language ? options.assetSettings.language : 'en',
+			globalAssetCache: options.assetSettings.globalAssetCache ? options.assetSettings.globalAssetCache : undefined,
+			assetCacheMaxItems: options.assetSettings.assetCacheMaxItems ? options.assetSettings.assetCacheMaxItems : undefined,
+			assetCacheGcInterval: options.assetSettings.assetCacheGcInterval ? options.assetSettings.assetCacheGcInterval : undefined
 		});
 
 		if (pollData) {

@@ -52,6 +52,11 @@ A Bot Manager instance
 | [options.loginInterval] | <code>Object</code> |  | an object containing login interval settings |
 | [options.loginInterval.time] | <code>number</code> |  | time in seconds for the interval to last |
 | [options.loginInterval.limit] | <code>number</code> |  | the number of logins we can make in this interval before we start blocking |
+| [options.assetSettings] | <code>Object</code> |  | asset settings which are parsed into the constructor for steam-tradeoffer-manager |
+| [options.assetSettings.language] | <code>string</code> |  | which language will be used for item descriptions |
+| [options.assetSettings.globalAssetCache] | <code>boolean</code> |  | see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#globalassetcache |
+| [options.assetSettings.assetCacheMaxItems] | <code>number</code> |  | see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#assetcachemaxitems |
+| [options.assetSettings.assetCacheGcInterval] | <code>number</code> |  | see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#assetcachegcinterval |
 
 <a name="BotManager+addBot"></a>
 

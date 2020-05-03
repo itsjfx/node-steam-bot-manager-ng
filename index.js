@@ -20,6 +20,11 @@ class BotManager extends EventEmitter {
 	 * @param {Object} [options.loginInterval] - an object containing login interval settings
 	 * @param {number} [options.loginInterval.time] - time in seconds for the interval to last
 	 * @param {number} [options.loginInterval.limit] - the number of logins we can make in this interval before we start blocking
+	 * @param {Object} [options.assetSettings] - asset settings which are parsed into the constructor for steam-tradeoffer-manager
+	 * @param {string} [options.assetSettings.language] - which language will be used for item descriptions
+	 * @param {boolean} [options.assetSettings.globalAssetCache] - see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#globalassetcache
+	 * @param {number} [options.assetSettings.assetCacheMaxItems] - see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#assetcachemaxitems
+	 * @param {number} [options.assetSettings.assetCacheGcInterval] - see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#assetcachegcinterval
 	 * 
 	 */
 	constructor(options) {
@@ -34,6 +39,7 @@ class BotManager extends EventEmitter {
 		this.options.loginInterval = options.limitInterval || {};
 		this.options.loginInterval.time = this.options.loginInterval.time || 120;
 		this.options.loginInterval.limit = this.options.loginInterval.limit || 2;
+		this.options.assetSettings = options.assetSettings || {};
 		this.bots = [];
 
 		this.recentLogins = 0;

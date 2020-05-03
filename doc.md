@@ -26,8 +26,8 @@ Our BotManager, extends EventEmitter to have an in-built EventEmitter for loggin
     * [.botIndexFromSteamid(steamid)](#BotManager+botIndexFromSteamid) ⇒ <code>number</code>
     * [.botSteamidFromIndex(botIndex)](#BotManager+botSteamidFromIndex) ⇒ <code>string</code>
     * [.botFromId(id)](#BotManager+botFromId) ⇒ <code>Object</code>
-    * [.botFromSteamId(id)](#BotManager+botFromSteamId) ⇒ <code>Object</code>
-    * [.botObjectFromSteamId(id)](#BotManager+botObjectFromSteamId) ⇒ <code>Object</code>
+    * [.botFromSteamId(steamid)](#BotManager+botFromSteamId) ⇒ <code>Object</code>
+    * [.botObjectFromSteamId(steamid)](#BotManager+botObjectFromSteamId) ⇒ <code>Object</code>
     * [.botFromAccountName(accountName)](#BotManager+botFromAccountName) ⇒ <code>Object</code>
     * [.botFromIndex(botIndex)](#BotManager+botFromIndex) ⇒ <code>Object</code>
     * [.botObjectFromId(id)](#BotManager+botObjectFromId) ⇒ <code>Object</code>
@@ -163,7 +163,7 @@ Gets the number of bot object for the bots id property (unique property)
 
 <a name="BotManager+botFromSteamId"></a>
 
-### botManager.botFromSteamId(id) ⇒ <code>Object</code>
+### botManager.botFromSteamId(steamid) ⇒ <code>Object</code>
 Gets the number of bot object for the bots id property (unique property)
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
@@ -171,11 +171,11 @@ Gets the number of bot object for the bots id property (unique property)
 
 | Param | Type | Description |
 | --- | --- | --- |
-| id | <code>string</code> | the id of the bot |
+| steamid | <code>string</code> | the steamid of the bot |
 
 <a name="BotManager+botObjectFromSteamId"></a>
 
-### botManager.botObjectFromSteamId(id) ⇒ <code>Object</code>
+### botManager.botObjectFromSteamId(steamid) ⇒ <code>Object</code>
 Gets the number of bot object for the bots id property (unique property)
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
@@ -183,7 +183,7 @@ Gets the number of bot object for the bots id property (unique property)
 
 | Param | Type | Description |
 | --- | --- | --- |
-| id | <code>string</code> | the id of the bot |
+| steamid | <code>string</code> | the steamid of the bot |
 
 <a name="BotManager+botFromAccountName"></a>
 

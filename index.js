@@ -158,7 +158,7 @@ class BotManager extends EventEmitter {
 
 	/**
 	 * Gets the number of bot object for the bots id property (unique property)
-	 * @param {string} id - the id of the bot
+	 * @param {string} steamid - the steamid of the bot
 	 * @returns {Object} - the bot object
 	 */
 	botFromSteamId(steamid) {
@@ -167,7 +167,7 @@ class BotManager extends EventEmitter {
 
 	/**
 	 * Gets the number of bot object for the bots id property (unique property)
-	 * @param {string} id - the id of the bot
+	 * @param {string} steamid - the steamid of the bot
 	 * @returns {Object} - the bot object
 	 */
 	botObjectFromSteamId(steamid) {

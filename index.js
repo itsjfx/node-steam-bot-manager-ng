@@ -157,6 +157,24 @@ class BotManager extends EventEmitter {
 	}
 
 	/**
+	 * Gets the number of bot object for the bots id property (unique property)
+	 * @param {string} id - the id of the bot
+	 * @returns {Object} - the bot object
+	 */
+	botFromSteamId(steamid) {
+		return this.botObjectFromSteamId(steamid);
+	}
+
+	/**
+	 * Gets the number of bot object for the bots id property (unique property)
+	 * @param {string} id - the id of the bot
+	 * @returns {Object} - the bot object
+	 */
+	botObjectFromSteamId(steamid) {
+		return this.bots.find(bot => bot.steamid === steamid);
+	}
+
+	/**
 	 * Gets the number of bot object for a given accountName
 	 * @param {string} accountName - the accountName for the bot
 	 * @returns {Object} - the bot object

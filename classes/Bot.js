@@ -37,7 +37,8 @@ class Bot extends EventEmitter {
 			language: options.assetSettings.language ? options.assetSettings.language : 'en',
 			globalAssetCache: options.assetSettings.globalAssetCache ? options.assetSettings.globalAssetCache : undefined,
 			assetCacheMaxItems: options.assetSettings.assetCacheMaxItems ? options.assetSettings.assetCacheMaxItems : undefined,
-			assetCacheGcInterval: options.assetSettings.assetCacheGcInterval ? options.assetSettings.assetCacheGcInterval : undefined
+			assetCacheGcInterval: options.assetSettings.assetCacheGcInterval ? options.assetSettings.assetCacheGcInterval : undefined,
+			dataDirectory: options.assetSettings.dataDirectory ? options.assetSettings.dataDirectory : undefined
 		});
 
 		if (pollData) {

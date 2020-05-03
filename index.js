@@ -25,7 +25,7 @@ class BotManager extends EventEmitter {
 	 * @param {boolean} [options.assetSettings.globalAssetCache] - see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#globalassetcache
 	 * @param {number} [options.assetSettings.assetCacheMaxItems] - see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#assetcachemaxitems
 	 * @param {number} [options.assetSettings.assetCacheGcInterval] - see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#assetcachegcinterval
-	 * 
+	 * @param {string} [options.assetSettings.dataDirectory] - see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#datadirectory
 	 */
 	constructor(options) {
 		super();

@@ -57,6 +57,7 @@ A Bot Manager instance
 | [options.assetSettings.globalAssetCache] | <code>boolean</code> |  | see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#globalassetcache |
 | [options.assetSettings.assetCacheMaxItems] | <code>number</code> |  | see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#assetcachemaxitems |
 | [options.assetSettings.assetCacheGcInterval] | <code>number</code> |  | see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#assetcachegcinterval |
+| [options.assetSettings.dataDirectory] | <code>string</code> |  | see https://github.com/DoctorMcKay/node-steam-tradeoffer-manager/wiki/TradeOfferManager#datadirectory |
 
 <a name="BotManager+addBot"></a>
 

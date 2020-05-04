@@ -270,6 +270,8 @@ Our Bot, extends EventEmitter to have an in-built EventEmitter for logging under
 * [Bot](#Bot) ⇐ <code>EventEmitter</code>
     * [.login(timer)](#Bot+login)
     * [.retryLogin(timer)](#Bot+retryLogin)
+    * [.communityLoggedIn()](#Bot+communityLoggedIn) ⇒ <code>Promise</code>
+    * [.loggedIn()](#Bot+loggedIn) ⇒ <code>Promise</code>
 
 <a name="Bot+login"></a>
 
@@ -293,3 +295,17 @@ Triggers the login for the bot, which is handled in the events in addBot. Used w
 | --- | --- | --- | --- |
 | timer | <code>number</code> | <code>0</code> | the time in ms we want to wait before we log the bot in |
 
+<a name="Bot+communityLoggedIn"></a>
+
+### bot.communityLoggedIn() ⇒ <code>Promise</code>
+Gets the bots logged in state for steamcommunity (web session), async because of the node-steamcommunity call
+
+**Kind**: instance method of [<code>Bot</code>](#Bot)  
+**Returns**: <code>Promise</code> - - Resolves true if true, rejects an error if not  
+<a name="Bot+loggedIn"></a>
+
+### bot.loggedIn() ⇒ <code>Promise</code>
+Gets the bots logged in state, async because of the node-steamcommunity call
+
+**Kind**: instance method of [<code>Bot</code>](#Bot)  
+**Returns**: <code>Promise</code> - - Resolves if both community and client are logged in, rejects with a response as to which are logged out if one is logged out  

@@ -19,7 +19,7 @@ class Bot extends EventEmitter {
 		this.botIndex = botIndex;
 		this.type = loginInfo.type;
 		this.id = loginInfo.id;
-		this.loggedIn = false;
+		//this.loggedIn = false;
 		this.retryingLogin = false;
 		this.initialLogin = true;
 		this.options = options;
@@ -70,14 +70,14 @@ class Bot extends EventEmitter {
 		this.community.on('sessionExpired', (err) => {
 			this.emit('log', 'error', `Bot ${loginInfo.accountName}'s web session expired, retrying login in ${options.loginRetryTime} seconds`);
 			this.emit('log', 'stack', err);
-			this.loggedIn = false;
+			//this.loggedIn = false;
 			this.retryLogin(options.loginRetryTime * 1000);
 		});
 
 		this.client.on('error', (err) => {
 			this.emit('log', 'error', `Bot ${loginInfo.accountName} was logged out of Steam client, retrying login in ${options.loginRetryTime} seconds`);
 			this.emit('log', 'stack', err);
-			this.loggedIn = false;
+			//this.loggedIn = false;
 			this.retryLogin(options.loginRetryTime * 1000);
 		});
 
@@ -129,12 +129,18 @@ class Bot extends EventEmitter {
 				loginInfo.twoFactorCode = SteamTotp.getAuthCode(loginInfo.shared);
 
 			this.retryingLogin = false; // Move the retry login here since we cannot handle all errors
-			if (!this.client.steamID) { // If we need to log it into Steam
+			if (!this.client.steamID || !this.client.publicIP) { // If we need to log it into Steam
 				this.emit('log', 'debug', `Logging into Steam Client`);
 				this.client.logOn(loginInfo);
-			} else { // We just need to refresh cookies, make a new webLogOn
-				this.emit('log', 'debug', `Requesting web session`);
-				this.client.webLogOn();
+			} else { // We may need to refresh cookies, check
+				this.communityLoggedIn()
+				.then(r => {
+					this.emit('log', 'debug', 'Bot is logged in, not refreshing login');
+				})
+				.catch(e => {
+					this.emit('log', 'debug', `Requesting web session`);
+					this.client.webLogOn();
+				})
 			}
 		}, timer);
 	}
@@ -146,6 +152,41 @@ class Bot extends EventEmitter {
 	 */
 	retryLogin(timer = 0) {
 		this.login(timer);
+	}
+
+	communityLoggedIn() {
+		return new Promise((resolve, reject) => {
+			let communityStatus = false;
+			this.community.loggedIn((err, loggedIn, familyView) => {
+				if (loggedIn)
+					communityStatus = true;
+				
+				if (!communityStatus)
+					return reject(new Error("Not logged in"));
+				resolve(true);
+			});
+		});
+	}
+
+	/**
+	 * Returns a promise, resolves if both community and client are logged in, rejects with a response as to which are logged out if one is logged out
+	 */
+	loggedIn() {
+		return new Promise(async (resolve, reject) => {
+			const clientStatus = !!this.client.steamID && !!this.client.publicIP;
+			let communityStatus
+			try {
+				communityStatus = await this.communityLoggedIn();
+			} catch {
+				communityStatus = false;
+			}
+			if (!communityStatus || !clientStatus)
+				return reject({
+					client: clientStatus,
+					community: communityStatus
+				});
+			resolve(true);
+		});
 	}
 
 	_initialLogin() {
@@ -173,7 +214,7 @@ class Bot extends EventEmitter {
 						if (err)
 							return reject(err);
 						this.apiKey = this.manager.apiKey;
-						this.loggedIn = true;
+						//this.loggedIn = true;
 						//this.retryingLogin = false;
 						resolve(this.botIndex);
 					});

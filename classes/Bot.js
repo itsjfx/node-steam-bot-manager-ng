@@ -19,7 +19,6 @@ class Bot extends EventEmitter {
 		this.botIndex = botIndex;
 		this.type = loginInfo.type;
 		this.id = loginInfo.id;
-		//this.loggedIn = false;
 		this.retryingLogin = false;
 		this.initialLogin = true;
 		this.options = options;
@@ -70,14 +69,12 @@ class Bot extends EventEmitter {
 		this.community.on('sessionExpired', (err) => {
 			this.emit('log', 'error', `Bot ${loginInfo.accountName}'s web session expired, retrying login in ${options.loginRetryTime} seconds`);
 			this.emit('log', 'stack', err);
-			//this.loggedIn = false;
 			this.retryLogin(options.loginRetryTime * 1000);
 		});
 
 		this.client.on('error', (err) => {
 			this.emit('log', 'error', `Bot ${loginInfo.accountName} was logged out of Steam client, retrying login in ${options.loginRetryTime} seconds`);
 			this.emit('log', 'stack', err);
-			//this.loggedIn = false;
 			this.retryLogin(options.loginRetryTime * 1000);
 		});
 
@@ -154,6 +151,10 @@ class Bot extends EventEmitter {
 		this.login(timer);
 	}
 
+	/**
+	 * Gets the bots logged in state for steamcommunity (web session), async because of the node-steamcommunity call
+	 * @returns {Promise} - Resolves true if true, rejects an error if not
+	 */
 	communityLoggedIn() {
 		return new Promise((resolve, reject) => {
 			let communityStatus = false;
@@ -169,7 +170,8 @@ class Bot extends EventEmitter {
 	}
 
 	/**
-	 * Returns a promise, resolves if both community and client are logged in, rejects with a response as to which are logged out if one is logged out
+	 * Gets the bots logged in state, async because of the node-steamcommunity call
+	 * @returns {Promise} - Resolves if both community and client are logged in, rejects with a response as to which are logged out if one is logged out
 	 */
 	loggedIn() {
 		return new Promise(async (resolve, reject) => {
@@ -214,8 +216,6 @@ class Bot extends EventEmitter {
 						if (err)
 							return reject(err);
 						this.apiKey = this.manager.apiKey;
-						//this.loggedIn = true;
-						//this.retryingLogin = false;
 						resolve(this.botIndex);
 					});
 				});

@@ -35,7 +35,8 @@ Our BotManager, extends EventEmitter to have an in-built EventEmitter for loggin
     * [.numberOfBots()](#BotManager+numberOfBots) ⇒ <code>number</code>
     * [.botObjectFromIndex(botIndex)](#BotManager+botObjectFromIndex) ⇒ [<code>Bot</code>](#Bot)
     * [.getBotsByType(type)](#BotManager+getBotsByType) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
-    * [.getBotsBySubtype(type)](#BotManager+getBotsBySubtype) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
+    * [.getBotsBySubtype(subtype)](#BotManager+getBotsBySubtype) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
+    * [.getBotsBySubtypeOnly(subtype)](#BotManager+getBotsBySubtypeOnly) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
     * [.getBotByType(type)](#BotManager+getBotByType) ⇒ [<code>Bot</code>](#Bot)
     * [.getBotBySubtype(subtype)](#BotManager+getBotBySubtype) ⇒ [<code>Bot</code>](#Bot)
 
@@ -270,15 +271,27 @@ Gets a list of bots filtered by a type
 
 <a name="BotManager+getBotsBySubtype"></a>
 
-### botManager.getBotsBySubtype(type) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
-Gets a list of bots filtered by a type
+### botManager.getBotsBySubtype(subtype) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
+Gets a list of bots filtered by a subtype.
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
 **Returns**: [<code>Array.&lt;Bot&gt;</code>](#Bot) - - the bot objects  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| type | <code>String</code> | the desired type |
+| subtype | <code>String</code> | the desired subtype |
+
+<a name="BotManager+getBotsBySubtypeOnly"></a>
+
+### botManager.getBotsBySubtypeOnly(subtype) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
+Gets a list of bots filtered by a subtype only.
+
+**Kind**: instance method of [<code>BotManager</code>](#BotManager)  
+**Returns**: [<code>Array.&lt;Bot&gt;</code>](#Bot) - - the bot objects  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| subtype | <code>String</code> | the desired subtype |
 
 <a name="BotManager+getBotByType"></a>
 

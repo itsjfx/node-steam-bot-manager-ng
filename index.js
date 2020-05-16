@@ -42,6 +42,11 @@ class BotManager extends EventEmitter {
 		this.options.assetSettings = options.assetSettings || {};
 		this.bots = [];
 
+		this._rotations = {
+			type: {},
+			subtype: {}
+		};
+
 		this.recentLogins = 0;
 		setInterval(() => {
 			this.recentLogins = 0;
@@ -56,6 +61,7 @@ class BotManager extends EventEmitter {
 	 * @param {string|Buffer} [loginInfo.identity] - the identity_secret of the account - as a Buffer, hex string, or base64 string
 	 * @param {string|Buffer} [loginInfo.secret] - the shared_secret of the account - as Buffer, hex string, or base64 string
 	 * @param {string} [loginInfo.type] - what type the bot will be, there can be multiple bots of the same type (e.g. storage)
+	 * @param {string} [loginInfo.subtype] - what subtype the bot will be, there can be multiple bots of the same subtype.
 	 * @param {string} [loginInfo.id] - a unique identifier for the bot in the case that in your code you want a way of mapping this type of bot for any accountName it gets changed to
 	 * @param {Object} [loginInfo.confirmationChecker] - an object containing behaviour for the confirmation checker for this bot, just like the defaultConfirmationChecker object in the constructor
 	 * @param {string} [loginInfo.confirmationChecker.type] - "manual" or "auto" - manual will not have the identity secret passed into startConfirmationChecker, whereas auto will - and auto will accept any mobile confirmation.
@@ -79,6 +85,15 @@ class BotManager extends EventEmitter {
 
 		const bot = new Bot(this, loginInfo, this.options, this.bots.length, managerEvents, pollData);
 		this.bots.push(bot);
+
+		// Reset the rotations if we add a bot for an existing rotator
+		if (this._rotations.type[loginInfo.type]) {
+			this._getBot('type', loginInfo.type, true);
+		}
+		if (this._rotations.subtype[loginInfo.subtype]) {
+			this._getBot('subtype', loginInfo.subtype, true);
+		}
+
 		bot.on('log', (type, log) => this.emit('log', type, log));
 		return bot._initialLogin();
 	}
@@ -150,7 +165,7 @@ class BotManager extends EventEmitter {
 	/**
 	 * Gets the number of bot object for the bots id property (unique property)
 	 * @param {string} id - the id of the bot
-	 * @returns {Object} - the bot object
+	 * @returns {Bot} - the bot object
 	 */
 	botFromId(id) {
 		return this.botObjectFromId(id);
@@ -159,7 +174,7 @@ class BotManager extends EventEmitter {
 	/**
 	 * Gets the number of bot object for the bots id property (unique property)
 	 * @param {string} steamid - the steamid of the bot
-	 * @returns {Object} - the bot object
+	 * @returns {Bot} - the bot object
 	 */
 	botFromSteamId(steamid) {
 		return this.botObjectFromSteamId(steamid);
@@ -168,7 +183,7 @@ class BotManager extends EventEmitter {
 	/**
 	 * Gets the number of bot object for the bots id property (unique property)
 	 * @param {string} steamid - the steamid of the bot
-	 * @returns {Object} - the bot object
+	 * @returns {Bot} - the bot object
 	 */
 	botObjectFromSteamId(steamid) {
 		return this.bots.find(bot => bot.steamid === steamid);
@@ -177,7 +192,7 @@ class BotManager extends EventEmitter {
 	/**
 	 * Gets the number of bot object for a given accountName
 	 * @param {string} accountName - the accountName for the bot
-	 * @returns {Object} - the bot object
+	 * @returns {Bot} - the bot object
 	 */
 	botFromAccountName(accountName) {
 		return this.botObjectFromAccountName(accountName);
@@ -186,7 +201,7 @@ class BotManager extends EventEmitter {
 	/**
 	 * Gets the number of bot object for a given botIndex
 	 * @param {number} botIndex - the index of the bot in the bots array
-	 * @returns {Object} - the bot object
+	 * @returns {Bot} - the bot object
 	 */
 	botFromIndex(botIndex) {
 		return this.botObjectFromIndex(botIndex);
@@ -195,7 +210,7 @@ class BotManager extends EventEmitter {
 	/**
 	 * Gets the number of bot object for the bots id property (unique property)
 	 * @param {string} id - the id of the bot
-	 * @returns {Object} - the bot object
+	 * @returns {Bot} - the bot object
 	 */
 	botObjectFromId(id) {
 		return this.bots.find(bot => bot.id === id);
@@ -204,18 +219,10 @@ class BotManager extends EventEmitter {
 	/**
 	 * Gets the number of bot object for a given accountName
 	 * @param {string} accountName - the accountName for the bot
-	 * @returns {Object} - the bot object
+	 * @returns {Bot} - the bot object
 	 */
 	botObjectFromAccountName(accountName) {
 		return this.bots.find(bot => bot.loginInfo.accountName === accountName);
-	}
-
-	/**
-	 * Gets the number of bots logged in
-	 * @returns {number} - the number of bots logged in
-	 */
-	numberOfBotsLoggedIn() {
-		return this.bots.reduce((acc, cur) => cur.loggedIn === true ? ++acc : acc, 0);
 	}
 
 	/**
@@ -229,10 +236,68 @@ class BotManager extends EventEmitter {
 	/**
 	 * Gets the number of bot object for a given botIndex
 	 * @param {number} botIndex - the index of the bot in the bots array
-	 * @returns {Object} - the bot object
+	 * @returns {Bot} - the bot object
 	 */
 	botObjectFromIndex(botIndex) {
 		return this.bots[botIndex];
+	}
+
+	/**
+	 * Gets a list of bots filtered by a type
+	 * @param {String} type - the desired type
+	 * @returns {Bot[]} - the bot objects
+	 */
+	getBotsByType(type) {
+		return this.bots.filter(bot => bot.type == type);
+	}
+
+	/**
+	 * Gets a list of bots filtered by a type
+	 * @param {String} type - the desired type
+	 * @returns {Bot[]} - the bot objects
+	 */
+	getBotsBySubtype(type) {
+		return this.bots.filter(bot => bot.subtype == type);
+	}
+
+	/**
+	 * Gets a bot by a type by rotating through the filtered bots.
+	 * @param {String} type - the desired type
+	 * @returns {Bot} - the bot
+	 */
+	getBotByType(type) {
+		return this._getBot('type', type);
+	}
+
+	/**
+	 * Gets a bot by a subtype by rotating through the filtered bots.
+	 * @param {String} subtype - the desired subtype
+	 * @returns {Bot} - the bot
+	 */
+	getBotBySubtype(subtype) {
+		return this._getBot('subtype', subtype);
+	}
+
+	_getBot(tType, type, override) {
+		if (!this._rotations[tType][type] || override)
+			this._rotations[tType][type] = this._rotateArray(this.bots.filter(bot => bot[tType] == type), 0);
+		
+		return this._rotations[tType][type]();
+	}
+
+	_rotateArray(arr, repeat = 0) {
+		let pos = 0;
+		let repeats = 0;
+		return function () {
+			if (pos > arr.length -1) pos = 0;
+			if (repeats >= repeat) {
+				repeats = 0;
+				return arr[pos++];
+			} else {
+				repeats++;
+				return arr[pos];
+			}
+		}
 	}
 }
 

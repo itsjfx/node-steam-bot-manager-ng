@@ -25,16 +25,19 @@ Our BotManager, extends EventEmitter to have an in-built EventEmitter for loggin
     * [.loadInventories(appid, contextid, tradableOnly)](#BotManager+loadInventories) ⇒ <code>Promise</code>
     * [.botIndexFromSteamid(steamid)](#BotManager+botIndexFromSteamid) ⇒ <code>number</code>
     * [.botSteamidFromIndex(botIndex)](#BotManager+botSteamidFromIndex) ⇒ <code>string</code>
-    * [.botFromId(id)](#BotManager+botFromId) ⇒ <code>Object</code>
-    * [.botFromSteamId(steamid)](#BotManager+botFromSteamId) ⇒ <code>Object</code>
-    * [.botObjectFromSteamId(steamid)](#BotManager+botObjectFromSteamId) ⇒ <code>Object</code>
-    * [.botFromAccountName(accountName)](#BotManager+botFromAccountName) ⇒ <code>Object</code>
-    * [.botFromIndex(botIndex)](#BotManager+botFromIndex) ⇒ <code>Object</code>
-    * [.botObjectFromId(id)](#BotManager+botObjectFromId) ⇒ <code>Object</code>
-    * [.botObjectFromAccountName(accountName)](#BotManager+botObjectFromAccountName) ⇒ <code>Object</code>
-    * [.numberOfBotsLoggedIn()](#BotManager+numberOfBotsLoggedIn) ⇒ <code>number</code>
+    * [.botFromId(id)](#BotManager+botFromId) ⇒ [<code>Bot</code>](#Bot)
+    * [.botFromSteamId(steamid)](#BotManager+botFromSteamId) ⇒ [<code>Bot</code>](#Bot)
+    * [.botObjectFromSteamId(steamid)](#BotManager+botObjectFromSteamId) ⇒ [<code>Bot</code>](#Bot)
+    * [.botFromAccountName(accountName)](#BotManager+botFromAccountName) ⇒ [<code>Bot</code>](#Bot)
+    * [.botFromIndex(botIndex)](#BotManager+botFromIndex) ⇒ [<code>Bot</code>](#Bot)
+    * [.botObjectFromId(id)](#BotManager+botObjectFromId) ⇒ [<code>Bot</code>](#Bot)
+    * [.botObjectFromAccountName(accountName)](#BotManager+botObjectFromAccountName) ⇒ [<code>Bot</code>](#Bot)
     * [.numberOfBots()](#BotManager+numberOfBots) ⇒ <code>number</code>
-    * [.botObjectFromIndex(botIndex)](#BotManager+botObjectFromIndex) ⇒ <code>Object</code>
+    * [.botObjectFromIndex(botIndex)](#BotManager+botObjectFromIndex) ⇒ [<code>Bot</code>](#Bot)
+    * [.getBotsByType(type)](#BotManager+getBotsByType) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
+    * [.getBotsBySubtype(type)](#BotManager+getBotsBySubtype) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
+    * [.getBotByType(type)](#BotManager+getBotByType) ⇒ [<code>Bot</code>](#Bot)
+    * [.getBotBySubtype(subtype)](#BotManager+getBotBySubtype) ⇒ [<code>Bot</code>](#Bot)
 
 <a name="new_BotManager_new"></a>
 
@@ -77,6 +80,7 @@ Adds a new bot to the bot manager.
 | [loginInfo.identity] | <code>string</code> \| <code>Buffer</code> | the identity_secret of the account - as a Buffer, hex string, or base64 string |
 | [loginInfo.secret] | <code>string</code> \| <code>Buffer</code> | the shared_secret of the account - as Buffer, hex string, or base64 string |
 | [loginInfo.type] | <code>string</code> | what type the bot will be, there can be multiple bots of the same type (e.g. storage) |
+| [loginInfo.subtype] | <code>string</code> | what subtype the bot will be, there can be multiple bots of the same subtype. |
 | [loginInfo.id] | <code>string</code> | a unique identifier for the bot in the case that in your code you want a way of mapping this type of bot for any accountName it gets changed to |
 | [loginInfo.confirmationChecker] | <code>Object</code> | an object containing behaviour for the confirmation checker for this bot, just like the defaultConfirmationChecker object in the constructor |
 | [loginInfo.confirmationChecker.type] | <code>string</code> | "manual" or "auto" - manual will not have the identity secret passed into startConfirmationChecker, whereas auto will - and auto will accept any mobile confirmation. |
@@ -151,11 +155,11 @@ Gets the Steam ID of a bot from the given botIndex
 
 <a name="BotManager+botFromId"></a>
 
-### botManager.botFromId(id) ⇒ <code>Object</code>
+### botManager.botFromId(id) ⇒ [<code>Bot</code>](#Bot)
 Gets the number of bot object for the bots id property (unique property)
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
-**Returns**: <code>Object</code> - - the bot object  
+**Returns**: [<code>Bot</code>](#Bot) - - the bot object  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -163,11 +167,11 @@ Gets the number of bot object for the bots id property (unique property)
 
 <a name="BotManager+botFromSteamId"></a>
 
-### botManager.botFromSteamId(steamid) ⇒ <code>Object</code>
+### botManager.botFromSteamId(steamid) ⇒ [<code>Bot</code>](#Bot)
 Gets the number of bot object for the bots id property (unique property)
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
-**Returns**: <code>Object</code> - - the bot object  
+**Returns**: [<code>Bot</code>](#Bot) - - the bot object  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -175,11 +179,11 @@ Gets the number of bot object for the bots id property (unique property)
 
 <a name="BotManager+botObjectFromSteamId"></a>
 
-### botManager.botObjectFromSteamId(steamid) ⇒ <code>Object</code>
+### botManager.botObjectFromSteamId(steamid) ⇒ [<code>Bot</code>](#Bot)
 Gets the number of bot object for the bots id property (unique property)
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
-**Returns**: <code>Object</code> - - the bot object  
+**Returns**: [<code>Bot</code>](#Bot) - - the bot object  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -187,11 +191,11 @@ Gets the number of bot object for the bots id property (unique property)
 
 <a name="BotManager+botFromAccountName"></a>
 
-### botManager.botFromAccountName(accountName) ⇒ <code>Object</code>
+### botManager.botFromAccountName(accountName) ⇒ [<code>Bot</code>](#Bot)
 Gets the number of bot object for a given accountName
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
-**Returns**: <code>Object</code> - - the bot object  
+**Returns**: [<code>Bot</code>](#Bot) - - the bot object  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -199,11 +203,11 @@ Gets the number of bot object for a given accountName
 
 <a name="BotManager+botFromIndex"></a>
 
-### botManager.botFromIndex(botIndex) ⇒ <code>Object</code>
+### botManager.botFromIndex(botIndex) ⇒ [<code>Bot</code>](#Bot)
 Gets the number of bot object for a given botIndex
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
-**Returns**: <code>Object</code> - - the bot object  
+**Returns**: [<code>Bot</code>](#Bot) - - the bot object  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -211,11 +215,11 @@ Gets the number of bot object for a given botIndex
 
 <a name="BotManager+botObjectFromId"></a>
 
-### botManager.botObjectFromId(id) ⇒ <code>Object</code>
+### botManager.botObjectFromId(id) ⇒ [<code>Bot</code>](#Bot)
 Gets the number of bot object for the bots id property (unique property)
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
-**Returns**: <code>Object</code> - - the bot object  
+**Returns**: [<code>Bot</code>](#Bot) - - the bot object  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -223,23 +227,16 @@ Gets the number of bot object for the bots id property (unique property)
 
 <a name="BotManager+botObjectFromAccountName"></a>
 
-### botManager.botObjectFromAccountName(accountName) ⇒ <code>Object</code>
+### botManager.botObjectFromAccountName(accountName) ⇒ [<code>Bot</code>](#Bot)
 Gets the number of bot object for a given accountName
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
-**Returns**: <code>Object</code> - - the bot object  
+**Returns**: [<code>Bot</code>](#Bot) - - the bot object  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | accountName | <code>string</code> | the accountName for the bot |
 
-<a name="BotManager+numberOfBotsLoggedIn"></a>
-
-### botManager.numberOfBotsLoggedIn() ⇒ <code>number</code>
-Gets the number of bots logged in
-
-**Kind**: instance method of [<code>BotManager</code>](#BotManager)  
-**Returns**: <code>number</code> - - the number of bots logged in  
 <a name="BotManager+numberOfBots"></a>
 
 ### botManager.numberOfBots() ⇒ <code>number</code>
@@ -249,15 +246,63 @@ Gets the number of bots added to the bot manager
 **Returns**: <code>number</code> - - the number of bots added to the bot manager  
 <a name="BotManager+botObjectFromIndex"></a>
 
-### botManager.botObjectFromIndex(botIndex) ⇒ <code>Object</code>
+### botManager.botObjectFromIndex(botIndex) ⇒ [<code>Bot</code>](#Bot)
 Gets the number of bot object for a given botIndex
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
-**Returns**: <code>Object</code> - - the bot object  
+**Returns**: [<code>Bot</code>](#Bot) - - the bot object  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | botIndex | <code>number</code> | the index of the bot in the bots array |
+
+<a name="BotManager+getBotsByType"></a>
+
+### botManager.getBotsByType(type) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
+Gets a list of bots filtered by a type
+
+**Kind**: instance method of [<code>BotManager</code>](#BotManager)  
+**Returns**: [<code>Array.&lt;Bot&gt;</code>](#Bot) - - the bot objects  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>String</code> | the desired type |
+
+<a name="BotManager+getBotsBySubtype"></a>
+
+### botManager.getBotsBySubtype(type) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
+Gets a list of bots filtered by a type
+
+**Kind**: instance method of [<code>BotManager</code>](#BotManager)  
+**Returns**: [<code>Array.&lt;Bot&gt;</code>](#Bot) - - the bot objects  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>String</code> | the desired type |
+
+<a name="BotManager+getBotByType"></a>
+
+### botManager.getBotByType(type) ⇒ [<code>Bot</code>](#Bot)
+Gets a bot by a type by rotating through the filtered bots.
+
+**Kind**: instance method of [<code>BotManager</code>](#BotManager)  
+**Returns**: [<code>Bot</code>](#Bot) - - the bot  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| type | <code>String</code> | the desired type |
+
+<a name="BotManager+getBotBySubtype"></a>
+
+### botManager.getBotBySubtype(subtype) ⇒ [<code>Bot</code>](#Bot)
+Gets a bot by a subtype by rotating through the filtered bots.
+
+**Kind**: instance method of [<code>BotManager</code>](#BotManager)  
+**Returns**: [<code>Bot</code>](#Bot) - - the bot  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| subtype | <code>String</code> | the desired subtype |
 
 <a name="Bot"></a>
 

@@ -18,6 +18,7 @@ class Bot extends EventEmitter {
 		this.steamid = null;
 		this.botIndex = botIndex;
 		this.type = loginInfo.type;
+		this.subtype = loginInfo.subtype;
 		this.id = loginInfo.id;
 		this.retryingLogin = false;
 		this.initialLogin = true;

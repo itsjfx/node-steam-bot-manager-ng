@@ -1,6 +1,8 @@
 const EventEmitter = require('events').EventEmitter;
 const Bot = require('./classes/Bot.js');
 
+const typeFilter = item => ~item.type.search('Tool') && item.market_hash_name.toUpperCase().includes('KEY');
+
 /**
  * Our BotManager, extends EventEmitter to have an in-built EventEmitter for logging under 'log'.
  * @class
@@ -85,14 +87,6 @@ class BotManager extends EventEmitter {
 
 		const bot = new Bot(this, loginInfo, this.options, this.bots.length, managerEvents, pollData);
 		this.bots.push(bot);
-
-		// Reset the rotations if we add a bot for an existing rotator
-		if (this._rotations.type[loginInfo.type]) {
-			this._getBot('type', loginInfo.type, true);
-		}
-		if (this._rotations.subtype[loginInfo.subtype]) {
-			this._getBot('subtype', loginInfo.subtype, true);
-		}
 
 		bot.on('log', (type, log) => this.emit('log', type, log));
 		return bot._initialLogin();
@@ -252,12 +246,21 @@ class BotManager extends EventEmitter {
 	}
 
 	/**
-	 * Gets a list of bots filtered by a type
-	 * @param {String} type - the desired type
+	 * Gets a list of bots filtered by a subtype.
+	 * @param {String} subtype - the desired subtype
 	 * @returns {Bot[]} - the bot objects
 	 */
-	getBotsBySubtype(type) {
-		return this.bots.filter(bot => bot.subtype == type);
+	getBotsBySubtype(type, subtype) {
+		return this.bots.filter(bot => bot.type == type && bot.subtype == subtype);
+	}
+
+	/**
+	 * Gets a list of bots filtered by a subtype only.
+	 * @param {String} subtype - the desired subtype
+	 * @returns {Bot[]} - the bot objects
+	 */
+	getBotsBySubtypeOnly(subtype) {
+		return this.bots.filter(bot => bot.subtype == subtype);
 	}
 
 	/**
@@ -266,7 +269,10 @@ class BotManager extends EventEmitter {
 	 * @returns {Bot} - the bot
 	 */
 	getBotByType(type) {
-		return this._getBot('type', type);
+		if (!this._rotations.type[type])
+			this._rotations.type[type] = this._rotateArray(bot => bot.type == type, 0);
+		
+		return this._rotations.type[type]();
 	}
 
 	/**
@@ -274,21 +280,20 @@ class BotManager extends EventEmitter {
 	 * @param {String} subtype - the desired subtype
 	 * @returns {Bot} - the bot
 	 */
-	getBotBySubtype(subtype) {
-		return this._getBot('subtype', subtype);
-	}
-
-	_getBot(tType, type, override) {
-		if (!this._rotations[tType][type] || override)
-			this._rotations[tType][type] = this._rotateArray(this.bots.filter(bot => bot[tType] == type), 0);
+	getBotBySubtype(type, subtype) {
+		if (!this._rotations.subtype[type])
+			this._rotations.subtype[type] = {};
+		if (!this._rotations.subtype[type][subtype])
+			this._rotations.subtype[type][subtype] = this._rotateArray(bot => bot.type == type && bot.subtype == subtype, 0);
 		
-		return this._rotations[tType][type]();
+		return this._rotations.subtype[type][subtype]();
 	}
 
-	_rotateArray(arr, repeat = 0) {
+	_rotateArray(filter, repeat = 0) {
 		let pos = 0;
 		let repeats = 0;
-		return function () {
+		return () => {
+			const arr = this.bots.filter(filter);
 			if (pos > arr.length -1) pos = 0;
 			if (repeats >= repeat) {
 				repeats = 0;

@@ -1,8 +1,6 @@
 const EventEmitter = require('events').EventEmitter;
 const Bot = require('./classes/Bot.js');
 
-const typeFilter = item => ~item.type.search('Tool') && item.market_hash_name.toUpperCase().includes('KEY');
-
 /**
  * Our BotManager, extends EventEmitter to have an in-built EventEmitter for logging under 'log'.
  * @class

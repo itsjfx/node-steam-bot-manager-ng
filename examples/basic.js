@@ -1,4 +1,4 @@
-const BotManager = require('../index.js');
+const BotManager = require('../lib/index.js');
 const loginInfo = require('./config.js');
 
 const InventoryApi = require('steam-inventory-api-ng'); // Optional inventory API for the loadInventories call. Omit if you wish not to use.

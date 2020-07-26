@@ -1,7 +1,8 @@
 {
   "name": "steam-bot-manager-ng",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "description": "Easily manage multiple Steam bots",
+  "main": "./lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

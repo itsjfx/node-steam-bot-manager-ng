@@ -1,7 +1,7 @@
 // Accepts a trade and sends the item it receives to another bot, repeatedly... Basically increases your trade made stat.
 // This is a proof of concept, so no rate limiting is added, eventually Steam will block you but you should be able to get a couple of hundred trades in.
 
-const BotManager = require('../index.js');
+const BotManager = require('../lib/index.js');
 const { ETradeOfferState, ETradeStatus } = require('steam-tradeoffer-manager');
 const loginInfo = require('./config.js');
 

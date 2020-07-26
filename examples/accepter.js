@@ -1,4 +1,4 @@
-const BotManager = require('../index.js');
+const BotManager = require('../lib/index.js');
 const { ETradeOfferState, ETradeStatus } = require('steam-tradeoffer-manager');
 const loginInfo = require('./config.js');
 

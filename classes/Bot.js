@@ -109,12 +109,14 @@ class Bot extends EventEmitter {
 	 * @param {number} timer - the time in ms we want to wait before we log the bot in
 	 */
 	login(timer = 0) {
-		if (this.retryingLogin == true)
+		if (this.retryingLogin == true) {
 			return this.emit('log', 'error', `A login is already queued, blocking attempt`);
+		}
 
 		if (!this.initialLogin) {
-			if (this.botManager.recentLogins >= this.botManager.options.loginInterval.limit)
+			if (this.botManager.recentLogins >= this.botManager.options.loginInterval.limit) {
 				return this.emit('log', 'error', `Maximum of logins hit for interval, blocking attempt`);
+			}
 
 			this.botManager.recentLogins++;
 		}
@@ -123,8 +125,9 @@ class Bot extends EventEmitter {
 		setTimeout(() => {
 			let loginInfo = this.loginInfo;
 			this.emit('log', 'info', `Logging into ${loginInfo.accountName}`);
-			if (loginInfo.shared)
+			if (loginInfo.shared) {
 				loginInfo.twoFactorCode = SteamTotp.getAuthCode(loginInfo.shared);
+			}
 
 			this.retryingLogin = false; // Move the retry login here since we cannot handle all errors
 			if (!this.client.steamID || !this.client.publicIP) { // If we need to log it into Steam
@@ -132,10 +135,10 @@ class Bot extends EventEmitter {
 				this.client.logOn(loginInfo);
 			} else { // We may need to refresh cookies, check
 				this.communityLoggedIn()
-				.then(r => {
+				.then((r) => {
 					this.emit('log', 'debug', 'Bot is logged in, not refreshing login');
 				})
-				.catch(e => {
+				.catch((e) => {
 					this.emit('log', 'debug', `Requesting web session`);
 					this.client.webLogOn();
 				})
@@ -160,11 +163,13 @@ class Bot extends EventEmitter {
 		return new Promise((resolve, reject) => {
 			let communityStatus = false;
 			this.community.loggedIn((err, loggedIn, familyView) => {
-				if (loggedIn)
+				if (loggedIn) {
 					communityStatus = true;
+				}
 				
-				if (!communityStatus)
+				if (!communityStatus) {
 					return reject(new Error("Not logged in"));
+				}
 				resolve(true);
 			});
 		});
@@ -214,8 +219,9 @@ class Bot extends EventEmitter {
 						this.community.startConfirmationChecker(this.loginInfo.confirmationChecker.pollInterval, this.loginInfo.identity);
 					}
 					this.manager.setCookies(cookies, (err) => {
-						if (err)
+						if (err) {
 							return reject(err);
+						}
 						this.apiKey = this.manager.apiKey;
 						resolve(this.botIndex);
 					});

@@ -1,4 +1,4 @@
-const BotManager = require('../index.js');
+const BotManager = require('../lib/index.js');
 const loginInfo = require('./config.js');
 
 const botManager = new BotManager({

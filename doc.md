@@ -35,10 +35,11 @@ Our BotManager, extends EventEmitter to have an in-built EventEmitter for loggin
     * [.numberOfBots()](#BotManager+numberOfBots) ⇒ <code>number</code>
     * [.botObjectFromIndex(botIndex)](#BotManager+botObjectFromIndex) ⇒ [<code>Bot</code>](#Bot)
     * [.getBotsByType(type)](#BotManager+getBotsByType) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
+    * [.getBotsByTypes(types)](#BotManager+getBotsByTypes) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
     * [.getBotsBySubtype(subtype)](#BotManager+getBotsBySubtype) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
     * [.getBotsBySubtypeOnly(subtype)](#BotManager+getBotsBySubtypeOnly) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
     * [.getBotByType(type)](#BotManager+getBotByType) ⇒ [<code>Bot</code>](#Bot)
-    * [.getBotBySubtype(subtype)](#BotManager+getBotBySubtype) ⇒ [<code>Bot</code>](#Bot)
+    * [.getBotBySubtype(type, subtype)](#BotManager+getBotBySubtype) ⇒ [<code>Bot</code>](#Bot)
 
 <a name="new_BotManager_new"></a>
 
@@ -269,6 +270,18 @@ Gets a list of bots filtered by a type
 | --- | --- | --- |
 | type | <code>String</code> | the desired type |
 
+<a name="BotManager+getBotsByTypes"></a>
+
+### botManager.getBotsByTypes(types) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
+Gets a list of bots filtered by an array of types
+
+**Kind**: instance method of [<code>BotManager</code>](#BotManager)  
+**Returns**: [<code>Array.&lt;Bot&gt;</code>](#Bot) - - the bot objects  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| types | <code>Array.&lt;String&gt;</code> | the desired types |
+
 <a name="BotManager+getBotsBySubtype"></a>
 
 ### botManager.getBotsBySubtype(subtype) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
@@ -307,7 +320,7 @@ Gets a bot by a type by rotating through the filtered bots.
 
 <a name="BotManager+getBotBySubtype"></a>
 
-### botManager.getBotBySubtype(subtype) ⇒ [<code>Bot</code>](#Bot)
+### botManager.getBotBySubtype(type, subtype) ⇒ [<code>Bot</code>](#Bot)
 Gets a bot by a subtype by rotating through the filtered bots.
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
@@ -315,6 +328,7 @@ Gets a bot by a subtype by rotating through the filtered bots.
 
 | Param | Type | Description |
 | --- | --- | --- |
+| type | <code>String</code> | the desired type |
 | subtype | <code>String</code> | the desired subtype |
 
 <a name="Bot"></a>

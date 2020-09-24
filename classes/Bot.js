@@ -6,7 +6,7 @@ const SteamTotp = require('steam-totp');
 const TradeOfferManager = require('steam-tradeoffer-manager');
 
 const EXPONENTIAL_LOGIN_BACKOFF_MAX = 60000;
-const DEFAULT_LOGIN_DELAY = 4000;
+const DEFAULT_LOGIN_DELAY = 1000;
 
 /**
  * Our Bot, extends EventEmitter to have an in-built EventEmitter for logging under 'log'.

@@ -18,7 +18,7 @@ const botManager = new BotManager({
 });
 
 // See the documentation for managerEvents in doc.md
-const botEvents = [
+const managerEvents = [
 	{
 		name: 'newOffer',
 		cb: (offer) => {
@@ -33,9 +33,11 @@ botManager.on('log', (type, log) => {
 	console.log(`${type} - ${log}`);
 });
 
-Promise.all(loginInfo.map(details => { // Promise to login all bots at once
-	// return botManager.addBot(details, details.type === 'storage' ? storageEvents : botEvents, null); // managerEvents can be set for each bot based on its type
-	return botManager.addBot(details, botEvents, null); // replace null with pollData if stored somewhere
+Promise.all(loginInfo.map((details) => { // Promise to login all bots at once
+	let bot = botManager.addBot(details, {
+		managerEvents,
+	});
+	return bot.login();
 }))
 .then(bots => {
 	console.log(`All ${bots.length} bots have been logged in`);

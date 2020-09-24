@@ -12,9 +12,9 @@ const botManager = new BotManager({
 	loginRetryTime: 30,
 	defaultConfirmationChecker: {},
 	loginInterval: {
-		time: 120,
-		limit: 2
-	}
+		time: 60,
+		limit: 4,
+	},
 });
 
 // See the documentation for managerEvents in doc.md

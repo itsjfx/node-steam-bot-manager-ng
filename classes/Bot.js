@@ -5,6 +5,9 @@ const SteamCommunity = require('steamcommunity');
 const SteamTotp = require('steam-totp');
 const TradeOfferManager = require('steam-tradeoffer-manager');
 
+const EXPONENTIAL_LOGIN_BACKOFF_MAX = 60000;
+const DEFAULT_LOGIN_DELAY = 4000;
+
 /**
  * Our Bot, extends EventEmitter to have an in-built EventEmitter for logging under 'log'.
  * For documentation on this constructor see addBot in the bot manager.
@@ -74,15 +77,19 @@ class Bot extends EventEmitter {
 		}
 
 		this.community.on('sessionExpired', (err) => {
-			this.emit('log', 'error', `Bot ${loginInfo.accountName}'s web session expired.`);
 			this.emit('log', 'stack', err);
-			this.retryLogin(botManager.options.loginRetryTime * 1000);
+			if (this.clientLoggedIn()) {
+				this.emit('log', 'error', `Bot ${loginInfo.accountName}'s web session expired. Retrying.`);
+				this.login();
+			} else {
+				this.emit('log', 'error', `Bot ${loginInfo.accountName}'s web session expired. Not retrying, client logged out.`);
+			}
 		});
 
 		this.client.on('error', (err) => {
-			this.emit('log', 'error', `Bot ${loginInfo.accountName} was logged out of Steam client, retrying login in ${botManager.options.loginRetryTime} seconds`);
+			this.emit('log', 'error', `Bot ${loginInfo.accountName} was logged out of Steam client.`);
 			this.emit('log', 'stack', err);
-			this.retryLogin(botManager.options.loginRetryTime * 1000);
+			this.login();
 		});
 
 		if (this.loginInfo.shared) {
@@ -92,7 +99,9 @@ class Bot extends EventEmitter {
 					setTimeout(() => {
 						callback(SteamTotp.getAuthCode(this.loginInfo.shared)); // 30 seconds is the max time for a 2FA code
 					}, 30 * 1000);
-				} else { // Taken from node-steam-user, if it's not an app code then it needs to be prompted. As we have a steamGuard listener the module will expect us to have a code for it
+				} else {
+					// Taken from node-steam-user, if it's not an app code then it needs to be prompted.
+					// As we have a steamGuard listener the module will expect us to have a code for it
 					let rl = require('readline').createInterface({
 						"input": process.stdin,
 						"output": process.stdout
@@ -112,9 +121,8 @@ class Bot extends EventEmitter {
 
 	/**
 	 * Triggers the login for the bot, which is handled in the events in addBot. Used when initially logging in also.
-	 * @param {number} timer - the time in ms we want to wait before we log the bot in
 	 */
-	login(timer = 0) {
+	login() {
 		if (this.retryingLogin == true) {
 			return this.emit('log', 'error', `A login is already queued, blocking attempt`);
 		}
@@ -128,6 +136,9 @@ class Bot extends EventEmitter {
 		}
 
 		this.retryingLogin = true;
+		let timer = this._loginTimeoutDuration || DEFAULT_LOGIN_DELAY;
+		this._loginTimeoutDuration = Math.min(timer * 2, EXPONENTIAL_LOGIN_BACKOFF_MAX); // Exponential backoff, factor of 2
+
 		setTimeout(() => {
 			let loginInfo = this.loginInfo;
 			this.emit('log', 'info', `Logging into ${loginInfo.accountName}`);
@@ -139,7 +150,7 @@ class Bot extends EventEmitter {
 			if (!this.clientLoggedIn()) { // If we need to log it into Steam
 				this.emit('log', 'debug', `Logging into Steam Client`);
 				this.client.logOn(loginInfo);
-			} else { // If we need to login to steamcommunity
+			} else { // Check if we need to login into steamcommunity
 				this.communityLoggedIn()
 				.then(() => {
 					this.emit('log', 'debug', 'Bot is logged in, not refreshing login');
@@ -149,7 +160,7 @@ class Bot extends EventEmitter {
 					this.client.webLogOn();
 				})
 			}
-		}, timer);
+		}, this._loginTimeoutDuration);
 
 		// Return a promise as to whether or not the bot has logged in if it's the first time calling login
 		if (this.initialLogin) {
@@ -160,10 +171,9 @@ class Bot extends EventEmitter {
 	/**
 	 * Triggers the login for the bot, which is handled in the events in addBot. Used when initially logging in also.
 	 * Alias of login
-	 * @param {number} timer - the time in ms we want to wait before we log the bot in
 	 */
-	retryLogin(timer = 0) {
-		this.login(timer);
+	retryLogin() {
+		return this.login();
 	}
 
 	/**
@@ -212,53 +222,56 @@ class Bot extends EventEmitter {
 	_initialLogin() {
 		return new Promise((resolve, reject) => {
 			if (!this.initialLogin) {
-				return reject(new Error("Initial login call already executed for bot", this.loginInfo.accountName));
+				return reject(new Error("Initial login call already executed for bot " + this.loginInfo.accountName));
 			}
 
 			// Only reject an error if it fails on the first login
 			this.client.on('loggedOn', (details) => {
-				if (details.eresult !== 1 && this.initialLogin) {
-					return reject(details);
+				if (details.eresult !== SteamUser.EResult.OK) {
+					this.emit('log', 'error', `EResult in loggedOn was not OK`);
+					if (this.initialLogin) {
+						return reject(details);
+					} else {
+						return;
+					}
 				}
 				this.steamid = this.client.steamID.getSteamID64();
+				//delete this._loginTimeoutDuration;
 			});
 
 			this.client.on('webSession', (sessionID, cookies) => {
-				let _login = new Promise((resolve, reject) => {
-					this.emit('log', 'debug', `Replacing web session`);
+				this.emit('log', 'debug', `Replacing web session`);
 
-					// Set the cookies for community
-					this.community.setCookies(cookies);
+				// Set the cookies for community
+				this.community.setCookies(cookies);
 
-					// Start confirmation checker again now that we have our web session
-					if (this.loginInfo.identity && this.loginInfo.confirmationChecker.type === 'manual') {
-						this.community.startConfirmationChecker(this.loginInfo.confirmationChecker.pollInterval);
-					} else if (this.loginInfo.identity && this.loginInfo.confirmationChecker.type === 'auto') {
-						this.community.startConfirmationChecker(this.loginInfo.confirmationChecker.pollInterval, this.loginInfo.identity);
-					}
+				// Start confirmation checker again now that we have our web session
+				if (this.loginInfo.identity && this.loginInfo.confirmationChecker.type === 'manual') {
+					this.community.startConfirmationChecker(this.loginInfo.confirmationChecker.pollInterval);
+				} else if (this.loginInfo.identity && this.loginInfo.confirmationChecker.type === 'auto') {
+					this.community.startConfirmationChecker(this.loginInfo.confirmationChecker.pollInterval, this.loginInfo.identity);
+				}
 
-					// Set cookies for our trade manager
-					this.manager.setCookies(cookies, (err) => {
-						if (err) {
+				// Set cookies for our trade manager
+				this.manager.setCookies(cookies, (err) => {
+					if (err) {
+						this.emit('log', 'error', `Error replacing cookies for manager`);
+						this.emit('log', 'stack', err);
+						if (this.initialLogin) {
 							return reject(err);
 						}
-						this.apiKey = this.manager.apiKey;
-						resolve(true);
-					});
-				});
+						// Retry
+						return this.login();
+					}
+					delete this._loginTimeoutDuration; // Reset our login backoff
+					this.apiKey = this.manager.apiKey;
 
-				_login
-				.then(() => {
+					// We are logged in now that our cookies are set
 					this.emit('log', 'info', `Bot ${this.loginInfo.accountName} logged in`);
 					if (this.initialLogin) {
 						this.initialLogin = false;
 						resolve(this); // Resolve the bot on the first login
 					}
-				})
-				.catch((err) => {
-					this.emit('log', 'error', `Error logging back in, retrying in ${this.botManager.options.loginRetryTime} seconds`);
-					this.emit('log', 'stack', err);
-					this.retryLogin(this.botManager.options.loginRetryTime * 1000);
 				});
 			});
 		});

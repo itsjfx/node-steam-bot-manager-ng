@@ -26,6 +26,9 @@ A list of changes from the former version [is here](https://github.com/itsjfx/no
 
 Other than that it doesn't exactly bring any new features to a basic Steam bot setup as it imports (`node-steam-user`, `node-steamcommunity`, `node-steam-tradeoffer-manager`, `node-steam-totp`), the aim is just to make it easier to manage and use these modules.
 
+## Documentation
+Check [doc.md](https://github.com/itsjfx/node-steam-bot-manager-ng/blob/master/doc.md).
+
 ## Logging
 
 To get any logging events just use something like below

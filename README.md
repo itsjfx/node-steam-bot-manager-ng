@@ -13,7 +13,7 @@ My former forked version `steam-bot-manager-fork` of the original `steam-bot-man
 
 This module is developed with the goal of simplifying the tasks of managing Steam bots. I have many tools which use Steam bots and having a dedicated manager for them seemed appropriate. The result is this module.
 
-A list of changes from the former version [is here](https://github.com/itsjfx/node-steam-bot-manager-ng#changes-from-the-fork-steam-bot-manager-fork-some-breaking-changes)
+A list of changes from the former version [is available here](https://github.com/itsjfx/node-steam-bot-manager-ng#changes-from-the-fork-steam-bot-manager-fork-some-breaking-changes).
 
 ## Things it does nice
 
@@ -37,15 +37,15 @@ botManager.on('log', (type, log) => {
 	console.log(`${type} - ${log}`);
 });
 ```
-You can still hook onto any of the events from `node-steamcommunity` and `node-steam-user` by accessing them from the bot object. This event emitter is only for debug logging and not aimed as a substitute any other events.
+You can still hook onto any of the events from `node-steamcommunity` and `node-steam-user` by accessing them from the bot object. This event emitter is only for debug logging and not aimed as a substitute for any other events.
 
 ## What is this inventory api thing
 
-It's an inventory api for Steam with some advanced features by me called `node-steam-inventory-api-ng`. Link here: https://github.com/itsjfx/node-steam-inventory-api-ng Ignore it if you don't want to use it as it is entirely optional.
+It's an inventory api for Steam with some advanced features made by me called `node-steam-inventory-api-ng`. The repository [is available here](https://github.com/itsjfx/node-steam-inventory-api-ng). Ignore it if you don't want to use it as its use is entirely optional.
 
 ## Confirmation polling
 
-Read this to understand confirmation polling: https://github.com/DoctorMcKay/node-steamcommunity/wiki/Steam-Confirmation-Polling
+Please read this to understand confirmation polling: https://github.com/DoctorMcKay/node-steamcommunity/wiki/Steam-Confirmation-Polling
 
 **Note that confirmation polling has been marked as deprecated on `node-steamcommunity` and I expect it to be removed *soon***
 

@@ -197,6 +197,10 @@ class Bot extends EventEmitter {
 		});
 	}
 
+	/**
+	 * Gets the bots logged in state for the Steam client (node-steam-user)
+	 * @returns {Boolean} - Returns true if logged in, false if not
+	 */
 	clientLoggedIn() {
 		return !!this.client.steamID && !!this.client.publicIP;
 	}

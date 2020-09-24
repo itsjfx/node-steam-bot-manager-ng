@@ -58,6 +58,11 @@ class Bot extends EventEmitter {
 			this.emit('log', 'debug', 'Set manager events: \n\t- ' + options.managerEvents.map((event) => event.name));
 		}
 
+		// If the confirmation checker is false for a bot, we assume they want it disabled
+		if (loginInfo.confirmationChecker === false) {
+			loginInfo.confirmationChecker = {};
+		}
+
 		// Set the confirmation checker settings to the bot managers if we are not overriding for this bot
 		if (loginInfo.identity && !loginInfo.confirmationChecker) {
 			this.emit('log', 'debug', `Using default confirmation checker settings for bot ${loginInfo.accountName}`);

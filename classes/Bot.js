@@ -175,7 +175,7 @@ class Bot extends EventEmitter {
 
 	/**
 	 * Triggers the login for the bot, which is handled in the events in addBot. Used when initially logging in also.
-	 * Alias of login
+	 * Alias of login.
 	 */
 	retryLogin() {
 		return this.login();

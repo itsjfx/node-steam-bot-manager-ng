@@ -1,17 +1,13 @@
 const BotManager = require('../../lib/index.js');
 const loginInfo = require('../config.js');
 const getTag = require('./getTag.js');
-const async = require('async');
 
-const InventoryApi = require('steam-inventory-api-fork'); // Optional inventory API for the loadInventories call. Omit if you wish not to use.
+const async = require('async'); // Requires async to be installed
+const InventoryApi = require('steam-inventory-api-ng'); // Requires steam-inventory-api-ng to be installed.
 
-const inventoryApi = Object.create(InventoryApi);
+const inventoryApi = new InventoryApi();
 
 const GEM_WORKERS = 10; // How many workers we will have running making gems
-
-inventoryApi.init({
-	id: 'Name of inventoryApi instance'
-});
 
 // Default values of the bot manager, except for the inventoryApi which is optional.
 const botManager = new BotManager({
@@ -22,7 +18,7 @@ const botManager = new BotManager({
 });
 
 // See the documentation for managerEvents in doc.md
-const botEvents = [
+const managerEvents = [
 	{
 		name: 'newOffer',
 		cb: (offer) => {
@@ -38,14 +34,16 @@ botManager.on('log', (type, log) => {
 });
 
 Promise.all(loginInfo.map(details => { // Promise to login all bots at once
-	// return botManager.addBot(details, details.type === 'storage' ? storageEvents : botEvents, null); // managerEvents can be set for each bot based on its type
-	return botManager.addBot(details, botEvents, null); // replace null with pollData if stored somewhere
+	let bot = botManager.addBot(details, {
+		managerEvents,
+	});
+	return bot.login();
 }))
-.then(bots => {
+.then((bots) => {
 	console.log(`All ${bots.length} bots have been logged in`);
 	return botManager.loadInventories(753, 6, true);
 })
-.then(items => {
+.then((items) => {
 	const bot = botManager.bots[0];
 	console.log(`${items.length} items found in the bot's inventories`);
 	const inventory = items.filter((item) => (/*getTag(item, 'item_class').internal_name === 'item_class_4' || */getTag(item, 'item_class').internal_name === 'item_class_3')/* && getTag(item, 'Game').internal_name === 'app_1195670'*/);
@@ -62,8 +60,9 @@ Promise.all(loginInfo.map(details => { // Promise to login all bots at once
 			} else {
 				const gemValue = res.gemValue;
 				console.log(`Gem value ${gemValue} for item ${item.id} ${item.market_hash_name}`);
-				if (!gemValue)
+				if (!gemValue) {
 					return callback();
+				}
 
 				bot.community.turnItemIntoGems(item.market_fee_app, item.assetid, gemValue, (err, res) => {
 					if (err) {
@@ -82,6 +81,6 @@ Promise.all(loginInfo.map(details => { // Promise to login all bots at once
 		console.log("Done");
 	});
 })
-.catch(err => {
+.catch((err) => {
 	console.log(`Error with bot manager`, err);
 });

@@ -1,24 +1,19 @@
 const BotManager = require('../lib/index.js');
 const loginInfo = require('./config.js');
 
-const InventoryApi = require('steam-inventory-api-ng'); // Optional inventory API for the loadInventories call. Omit if you wish not to use.
-
-const inventoryApi = new InventoryApi();
-
 // Default values of the bot manager, except for the inventoryApi which is optional.
 const botManager = new BotManager({
 	cancelTime: null,
-	inventoryApi: inventoryApi,
 	loginRetryTime: 30,
 	defaultConfirmationChecker: {},
 	loginInterval: {
-		time: 120,
-		limit: 2
-	}
+		time: 60,
+		limit: 4,
+	},
 });
 
 // See the documentation for managerEvents in doc.md
-const botEvents = [
+const managerEvents = [
 	{
 		name: 'newOffer',
 		cb: (offer) => {
@@ -33,17 +28,15 @@ botManager.on('log', (type, log) => {
 	console.log(`${type} - ${log}`);
 });
 
-Promise.all(loginInfo.map(details => { // Promise to login all bots at once
-	// return botManager.addBot(details, details.type === 'storage' ? storageEvents : botEvents, null); // managerEvents can be set for each bot based on its type
-	return botManager.addBot(details, botEvents, null); // replace null with pollData if stored somewhere
+Promise.all(loginInfo.map((details) => { // Promise to login all bots at once
+	let bot = botManager.addBot(details, {
+		managerEvents,
+	});
+	return bot.login();
 }))
-.then(bots => {
+.then((bots) => {
 	console.log(`All ${bots.length} bots have been logged in`);
-	return botManager.loadInventories(730, 2, true);
 })
-.then(items => {
-	console.log(`${items.length} items found in the bot's inventories`);
-})
-.catch(err => {
+.catch((err) => {
 	console.log(`Error with bot manager`, err);
 });

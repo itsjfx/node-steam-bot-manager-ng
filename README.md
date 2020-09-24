@@ -18,11 +18,9 @@ A list of changes from the former version [is available here](https://github.com
 ## Things it does nice
 
 - The bot manager will gracefully keep any bots logged in if they are ever logged out
-- Auto generate 2FA keys for login and any Steam Guard prompts if the login fails. For the case of an email code a prompt will display like node-steam-user does
-- Easy confirmation polling configuration
-- Handle all the login logic with Steam
 - Give you a bot object which is a simple interface with a `node-steam-tradeoffer-manager` instance, a `node-steam` instance and a `node-steamcommunity` instance
-
+- Auto generate 2FA keys for login and any Steam Guard prompts if the login fails. For the case of an email code a prompt will display like `node-steam-user` does
+- Easy confirmation polling configuration
 
 Other than that it doesn't exactly bring any new features to a basic Steam bot setup as it imports (`node-steam-user`, `node-steamcommunity`, `node-steam-tradeoffer-manager`, `node-steam-totp`), the aim is just to make it easier to manage and use these modules.
 

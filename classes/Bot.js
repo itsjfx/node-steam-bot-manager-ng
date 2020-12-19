@@ -27,7 +27,9 @@ class Bot extends EventEmitter {
 		this.botManager = botManager;
 
 		// Create instances
-		this.client = new SteamUser();
+		this.client = new SteamUser({
+			httpProxy: loginInfo.httpProxy
+		});
 		this.community = new SteamCommunity();
 		this.manager = new TradeOfferManager({
 			steam: this.client,

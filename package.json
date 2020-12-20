@@ -10,7 +10,11 @@
     "type": "git",
     "url": "git+https://github.com/itsjfx/node-steam-bot-manager-ng.git"
   },
-  "author": "jfx (https://jfx.ac)",
+  "author": {
+		"name": "Thomas",
+		"email": "me@jfx.ac",
+		"url": "https://jfx.ac"
+	},
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/itsjfx/node-steam-bot-manager-ng/issues"

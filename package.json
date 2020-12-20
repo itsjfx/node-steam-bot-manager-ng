@@ -1,6 +1,6 @@
 {
   "name": "steam-bot-manager-ng",
-  "version": "2.5.5",
+  "version": "3.0.0",
   "description": "Easily manage multiple Steam bots",
   "main": "./lib/index.js",
   "scripts": {
@@ -10,7 +10,11 @@
     "type": "git",
     "url": "git+https://github.com/itsjfx/node-steam-bot-manager-ng.git"
   },
-  "author": "jfx (https://jfx.ac)",
+  "author": {
+		"name": "Thomas",
+		"email": "me@jfx.ac",
+		"url": "https://jfx.ac"
+	},
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/itsjfx/node-steam-bot-manager-ng/issues"
@@ -20,10 +24,10 @@
     "steam-inventory-api-ng": "^1.0.6",
     "steam-totp": "^2.1.1",
     "steam-tradeoffer-manager": "^2.10.1",
-    "steam-user": "^4.14.0",
-    "steamcommunity": "^3.41.3"
+    "steam-user": "^4.18.0",
+    "steamcommunity": "^3.41.7"
   },
   "devDependencies": {
-    "jsdoc-to-markdown": "^5.0.3"
+    "jsdoc-to-markdown": "^6.0.1"
   }
 }

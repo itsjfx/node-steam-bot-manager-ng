@@ -1,28 +1,33 @@
+const EventEmitter = require('events').EventEmitter;
+
 const SteamUser = require('steam-user');
 const SteamCommunity = require('steamcommunity');
 const SteamTotp = require('steam-totp');
 const TradeOfferManager = require('steam-tradeoffer-manager');
-const EventEmitter = require('events').EventEmitter;
+
+const EXPONENTIAL_LOGIN_BACKOFF_MAX = 60000;
+const DEFAULT_LOGIN_DELAY = 1000;
 
 /**
  * Our Bot, extends EventEmitter to have an in-built EventEmitter for logging under 'log'.
+ * For documentation on this constructor see addBot in the bot manager.
+ * loginInfo is generally set in the config of the bot, whereas options is done by the code adding the bot (e.g. reading from DB, getting pollData)
  * @class
  * @extends EventEmitter
  */
 class Bot extends EventEmitter {
-	constructor(botManager, loginInfo, options, botIndex, managerEvents, pollData) {
+	constructor(botManager, loginInfo, options) {
 		super();
 		// Bot vars
 		this.loginInfo = loginInfo;
 		this.apiKey = null;
 		this.steamid = null;
-		this.botIndex = botIndex;
+		this.botIndex = botManager.bots.length;
 		this.type = loginInfo.type;
 		this.subtype = loginInfo.subtype;
 		this.id = loginInfo.id;
 		this.retryingLogin = false;
 		this.initialLogin = true;
-		this.options = options;
 
 		this.botManager = botManager;
 
@@ -35,29 +40,38 @@ class Bot extends EventEmitter {
 			steam: this.client,
 			community: this.community,
 			domain: 'localhost',
-			cancelTime: options.cancelTime,
-			language: options.assetSettings.language ? options.assetSettings.language : 'en',
-			globalAssetCache: options.assetSettings.globalAssetCache ? options.assetSettings.globalAssetCache : undefined,
-			assetCacheMaxItems: options.assetSettings.assetCacheMaxItems ? options.assetSettings.assetCacheMaxItems : undefined,
-			assetCacheGcInterval: options.assetSettings.assetCacheGcInterval ? options.assetSettings.assetCacheGcInterval : undefined,
-			dataDirectory: options.assetSettings.dataDirectory ? options.assetSettings.dataDirectory : undefined
+			cancelTime: botManager.options.cancelTime,
+			language: botManager.options.assetSettings.language,
+			globalAssetCache: (options.assetSettings && options.assetSettings.globalAssetCache) || botManager.options.assetSettings.globalAssetCache,
+			assetCacheMaxItems: (options.assetSettings && options.assetSettings.assetCacheMaxItems) || botManager.options.assetSettings.assetCacheMaxItems,
+			assetCacheGcInterval: (options.assetSettings && options.assetSettings.assetCacheGcInterval) || botManager.options.assetSettings.assetCacheGcInterval,
+			dataDirectory: (options.assetSettings && options.assetSettings.dataDirectory) || botManager.options.assetSettings.dataDirectory,
 		});
 
-		if (pollData) {
-			this.manager.pollData = pollData;
+		// Resume pollData if it is given
+		if (options.pollData) {
+			this.manager.pollData = options.pollData;
 			this.emit('log', 'debug', 'Set pollData');
 		}
 
-		if (managerEvents) {
-			managerEvents.forEach((event) => this.manager.on(event.name, event.cb));
-			this.emit('log', 'debug', 'Set manager events: \n\t- ' + managerEvents.map((event) => event.name));
+		// Set manager events if they are given
+		if (options.managerEvents) {
+			options.managerEvents.forEach((event) => this.manager.on(event.name, event.cb));
+			this.emit('log', 'debug', 'Set manager events: \n\t- ' + options.managerEvents.map((event) => event.name));
 		}
 
+		// If the confirmation checker is false for a bot, we assume they want it disabled
+		if (loginInfo.confirmationChecker === false) {
+			loginInfo.confirmationChecker = {};
+		}
+
+		// Set the confirmation checker settings to the bot managers if we are not overriding for this bot
 		if (loginInfo.identity && !loginInfo.confirmationChecker) {
 			this.emit('log', 'debug', `Using default confirmation checker settings for bot ${loginInfo.accountName}`);
-			loginInfo.confirmationChecker = options.defaultConfirmationChecker;
+			loginInfo.confirmationChecker = botManager.options.defaultConfirmationChecker;
 		}
 
+		// Add the confKeyNeeded event if we using manual mode
 		if (loginInfo.identity && loginInfo.confirmationChecker.type === 'manual') {
 			this.community.on('confKeyNeeded', (tag, callback) => {
 				// Disabling this as this call never gets called, since we can reuse details
@@ -70,15 +84,19 @@ class Bot extends EventEmitter {
 		}
 
 		this.community.on('sessionExpired', (err) => {
-			this.emit('log', 'error', `Bot ${loginInfo.accountName}'s web session expired, retrying login in ${options.loginRetryTime} seconds`);
 			this.emit('log', 'stack', err);
-			this.retryLogin(options.loginRetryTime * 1000);
+			if (this.clientLoggedIn()) {
+				this.emit('log', 'error', `Bot ${loginInfo.accountName}'s web session expired. Retrying.`);
+				this.login();
+			} else {
+				this.emit('log', 'error', `Bot ${loginInfo.accountName}'s web session expired. Not retrying, client logged out.`);
+			}
 		});
 
 		this.client.on('error', (err) => {
-			this.emit('log', 'error', `Bot ${loginInfo.accountName} was logged out of Steam client, retrying login in ${options.loginRetryTime} seconds`);
+			this.emit('log', 'error', `Bot ${loginInfo.accountName} was logged out of Steam client.`);
 			this.emit('log', 'stack', err);
-			this.retryLogin(options.loginRetryTime * 1000);
+			this.login();
 		});
 
 		if (this.loginInfo.shared) {
@@ -88,7 +106,9 @@ class Bot extends EventEmitter {
 					setTimeout(() => {
 						callback(SteamTotp.getAuthCode(this.loginInfo.shared)); // 30 seconds is the max time for a 2FA code
 					}, 30 * 1000);
-				} else { // Taken from node-steam-user, if it's not an app code then it needs to be prompted. As we have a steamGuard listener the module will expect us to have a code for it
+				} else {
+					// Taken from node-steam-user, if it's not an app code then it needs to be prompted.
+					// As we have a steamGuard listener the module will expect us to have a code for it
 					let rl = require('readline').createInterface({
 						"input": process.stdin,
 						"output": process.stdout
@@ -102,15 +122,14 @@ class Bot extends EventEmitter {
 			});
 		}
 
-		this.retryLogin();
 		this.emit('log', 'debug', `Added bot ${loginInfo.accountName}`);
+		return this;
 	}
 
 	/**
 	 * Triggers the login for the bot, which is handled in the events in addBot. Used when initially logging in also.
-	 * @param {number} timer - the time in ms we want to wait before we log the bot in
 	 */
-	login(timer = 0) {
+	login() {
 		if (this.retryingLogin == true) {
 			return this.emit('log', 'error', `A login is already queued, blocking attempt`);
 		}
@@ -124,6 +143,9 @@ class Bot extends EventEmitter {
 		}
 
 		this.retryingLogin = true;
+		let timer = this._loginTimeoutDuration || DEFAULT_LOGIN_DELAY;
+		this._loginTimeoutDuration = Math.min(timer * 2, EXPONENTIAL_LOGIN_BACKOFF_MAX); // Exponential backoff, factor of 2
+
 		setTimeout(() => {
 			let loginInfo = this.loginInfo;
 			this.emit('log', 'info', `Logging into ${loginInfo.accountName}`);
@@ -132,29 +154,33 @@ class Bot extends EventEmitter {
 			}
 
 			this.retryingLogin = false; // Move the retry login here since we cannot handle all errors
-			if (!this.client.steamID || !this.client.publicIP) { // If we need to log it into Steam
+			if (!this.clientLoggedIn()) { // If we need to log it into Steam
 				this.emit('log', 'debug', `Logging into Steam Client`);
 				this.client.logOn(loginInfo);
-			} else { // We may need to refresh cookies, check
+			} else { // Check if we need to login into steamcommunity
 				this.communityLoggedIn()
-				.then((r) => {
+				.then(() => {
 					this.emit('log', 'debug', 'Bot is logged in, not refreshing login');
 				})
-				.catch((e) => {
+				.catch(() => {
 					this.emit('log', 'debug', `Requesting web session`);
 					this.client.webLogOn();
 				})
 			}
-		}, timer);
+		}, this._loginTimeoutDuration);
+
+		// Return a promise as to whether or not the bot has logged in if it's the first time calling login
+		if (this.initialLogin) {
+			return this._initialLogin();
+		}
 	}
 
 	/**
 	 * Triggers the login for the bot, which is handled in the events in addBot. Used when initially logging in also.
-	 * Alias of login
-	 * @param {number} timer - the time in ms we want to wait before we log the bot in
+	 * Alias of login.
 	 */
-	retryLogin(timer = 0) {
-		this.login(timer);
+	retryLogin() {
+		return this.login();
 	}
 
 	/**
@@ -163,18 +189,22 @@ class Bot extends EventEmitter {
 	 */
 	communityLoggedIn() {
 		return new Promise((resolve, reject) => {
-			let communityStatus = false;
 			this.community.loggedIn((err, loggedIn, familyView) => {
 				if (loggedIn) {
-					communityStatus = true;
-				}
-				
-				if (!communityStatus) {
+					return resolve(true);
+				} else {
 					return reject(new Error("Not logged in"));
 				}
-				resolve(true);
 			});
 		});
+	}
+
+	/**
+	 * Gets the bots logged in state for the Steam client (node-steam-user)
+	 * @returns {Boolean} - Returns true if logged in, false if not
+	 */
+	clientLoggedIn() {
+		return !!this.client.steamID && !!this.client.publicIP;
 	}
 
 	/**
@@ -183,63 +213,75 @@ class Bot extends EventEmitter {
 	 */
 	loggedIn() {
 		return new Promise(async (resolve, reject) => {
-			const clientStatus = !!this.client.steamID && !!this.client.publicIP;
+			const clientStatus = this.clientLoggedIn();
 			let communityStatus
 			try {
 				communityStatus = await this.communityLoggedIn();
 			} catch {
 				communityStatus = false;
 			}
-			if (!communityStatus || !clientStatus)
+			if (!communityStatus || !clientStatus) {
 				return reject({
 					client: clientStatus,
-					community: communityStatus
+					community: communityStatus,
 				});
+			}
 			resolve(true);
 		});
 	}
 
 	_initialLogin() {
 		return new Promise((resolve, reject) => {
-			if (!this.initialLogin)
-				return reject(new Error("Initial login call already executed for bot", this.loginInfo.accountName));
+			if (!this.initialLogin) {
+				return reject(new Error("Initial login call already executed for bot " + this.loginInfo.accountName));
+			}
 
+			// Only reject an error if it fails on the first login
 			this.client.on('loggedOn', (details) => {
-				if (details.eresult !== 1 && this.initialLogin) {
-					return reject(details);
+				if (details.eresult !== SteamUser.EResult.OK) {
+					this.emit('log', 'error', `EResult in loggedOn was not OK`);
+					if (this.initialLogin) {
+						return reject(details);
+					} else {
+						return;
+					}
 				}
 				this.steamid = this.client.steamID.getSteamID64();
+				//delete this._loginTimeoutDuration;
 			});
 
 			this.client.on('webSession', (sessionID, cookies) => {
-				let login = new Promise((resolve, reject) => {
-					this.emit('log', 'debug', `Replacing web session`);
-					this.community.setCookies(cookies);
-					if (this.loginInfo.identity && this.loginInfo.confirmationChecker.type === 'manual') {
-						this.community.startConfirmationChecker(this.loginInfo.confirmationChecker.pollInterval);
-					} else if (this.loginInfo.identity && this.loginInfo.confirmationChecker.type === 'auto') {
-						this.community.startConfirmationChecker(this.loginInfo.confirmationChecker.pollInterval, this.loginInfo.identity);
-					}
-					this.manager.setCookies(cookies, (err) => {
-						if (err) {
+				this.emit('log', 'debug', `Replacing web session`);
+
+				// Set the cookies for community
+				this.community.setCookies(cookies);
+
+				// Start confirmation checker again now that we have our web session
+				if (this.loginInfo.identity && this.loginInfo.confirmationChecker.type === 'manual') {
+					this.community.startConfirmationChecker(this.loginInfo.confirmationChecker.pollInterval);
+				} else if (this.loginInfo.identity && this.loginInfo.confirmationChecker.type === 'auto') {
+					this.community.startConfirmationChecker(this.loginInfo.confirmationChecker.pollInterval, this.loginInfo.identity);
+				}
+
+				// Set cookies for our trade manager
+				this.manager.setCookies(cookies, (err) => {
+					if (err) {
+						this.emit('log', 'error', `Error replacing cookies for manager`);
+						this.emit('log', 'stack', err);
+						if (this.initialLogin) {
 							return reject(err);
 						}
-						this.apiKey = this.manager.apiKey;
-						resolve(this.botIndex);
-					});
-				});
+						// Retry
+						return this.login();
+					}
+					delete this._loginTimeoutDuration; // Reset our login backoff
+					this.apiKey = this.manager.apiKey;
 
-				login
-				.catch((err) => {
-					this.emit('log', 'error', `Error logging back in, retrying in ${this.options.loginRetryTime} seconds`);
-					this.emit('log', 'stack', err);
-					this.retryLogin(this.options.loginRetryTime * 1000);
-				})
-				.then((res) => {
+					// We are logged in now that our cookies are set
 					this.emit('log', 'info', `Bot ${this.loginInfo.accountName} logged in`);
 					if (this.initialLogin) {
 						this.initialLogin = false;
-						resolve(this); // If it was our first login, we resolve the call once it's logged in the first time
+						resolve(this); // Resolve the bot on the first login
 					}
 				});
 			});

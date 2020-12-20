@@ -11,8 +11,8 @@ const botManager = new BotManager({
 	loginRetryTime: 30,
 	defaultConfirmationChecker: {},
 	loginInterval: {
-		time: 120,
-		limit: 2
+		time: 60,
+		limit: 4,
 	}
 });
 
@@ -26,7 +26,7 @@ function retry(fn, retries=3, err=null) {
 }
 
 // See the documentation for managerEvents in doc.md
-const botEvents = [
+const managerEvents = [
 	{
 		name: 'newOffer',
 		cb: (offer) => {
@@ -54,8 +54,9 @@ const botEvents = [
 
 			if (state == "Accepted") {
 				offer.getExchangeDetails((err, status, tradeInitTime, receivedItems, sentItems) => {
-					if (err)
+					if (err) {
 						return console.log(`Error getting exchange details: ${err}`);
+					}
 
 					// Create arrays of just the new assetids using Array.prototype.map and arrow functions
 					let newReceivedItems = receivedItems.map(item => item.new_assetid);
@@ -64,7 +65,7 @@ const botEvents = [
 						return {
 							assetid: item.new_assetid,
 							appid: item.appid,
-							contextid: item.contextid
+							contextid: item.contextid,
 							//amount: item.amount ? item.amount : null
 						}
 					});
@@ -113,12 +114,14 @@ botManager.on('log', (type, log) => {
 });
 
 Promise.all(loginInfo.map(details => { // Promise to login all bots at once
-	// return botManager.addBot(details, details.type === 'storage' ? storageEvents : botEvents, null); // managerEvents can be set for each bot based on its type
-	return botManager.addBot(details, botEvents, null); // replace null with pollData if stored somewhere
+	let bot = botManager.addBot(details, {
+		managerEvents,
+	});
+	return bot.login();
 }))
-.then(bots => {
+.then((bots) => {
 	console.log(`All ${bots.length} bots have been logged in`);
 })
-.catch(err => {
+.catch((err) => {
 	console.log(`Error with bot manager`, err);
 });

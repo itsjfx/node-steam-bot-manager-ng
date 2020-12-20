@@ -1,13 +1,14 @@
 const BotManager = require('../lib/index.js');
 const loginInfo = require('./config.js');
+const { EPersonaState } = require('steam-user');
 
 const botManager = new BotManager({
 	cancelTime: null,
 	loginRetryTime: 30,
 	defaultConfirmationChecker: {},
 	loginInterval: {
-		time: 120,
-		limit: 2
+		time: 60,
+		limit: 4,
 	}
 });
 
@@ -19,14 +20,16 @@ botManager.on('log', (type, log) => {
 });
 
 Promise.all(loginInfo.map(details => { // Promise to login all bots at once
-	return botManager.addBot(details); // replace null with pollData if stored somewhere
+	let bot = botManager.addBot(details);
+	return bot.login();
 }))
-.then(bots => {
+.then((bots) => {
 	console.log(`All ${bots.length} bots have been logged in`);
-	console.log(bots[0].client);
-	bots[0].client.setPersona(1)
-	bots[0].client.gamesPlayed(APPIDS);
+	bots.forEach((bot) => {
+		bot.client.setPersona(EPersonaState.Online)
+		bot.client.gamesPlayed(APPIDS);
+	});
 })
-.catch(err => {
+.catch((err) => {
 	console.log(`Error with bot manager`, err);
 });

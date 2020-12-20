@@ -1,6 +1,6 @@
 {
   "name": "steam-bot-manager-ng",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Easily manage multiple Steam bots",
   "main": "./lib/index.js",
   "scripts": {
@@ -11,10 +11,10 @@
     "url": "git+https://github.com/itsjfx/node-steam-bot-manager-ng.git"
   },
   "author": {
-		"name": "Thomas",
-		"email": "me@jfx.ac",
-		"url": "https://jfx.ac"
-	},
+    "name": "Thomas",
+    "email": "me@jfx.ac",
+    "url": "https://jfx.ac"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/itsjfx/node-steam-bot-manager-ng/issues"

@@ -4,6 +4,7 @@ const SteamUser = require('steam-user');
 const SteamCommunity = require('steamcommunity');
 const SteamTotp = require('steam-totp');
 const TradeOfferManager = require('steam-tradeoffer-manager');
+const Request = require('request');
 
 const EXPONENTIAL_LOGIN_BACKOFF_MAX = 60000;
 const DEFAULT_LOGIN_DELAY = 1000;
@@ -35,7 +36,15 @@ class Bot extends EventEmitter {
 		this.client = new SteamUser({
 			httpProxy: loginInfo.httpProxy
 		});
-		this.community = new SteamCommunity();
+		if (loginInfo.httpProxy) {
+			this.community = new SteamCommunity({
+				request: Request.defaults({
+					proxy: loginInfo.httpProxy
+				})
+			});
+		} else {
+			this.community = new SteamCommunity();
+		}
 		this.manager = new TradeOfferManager({
 			steam: this.client,
 			community: this.community,

@@ -145,6 +145,8 @@ class Bot extends EventEmitter {
 
 		if (!this.initialLogin) {
 			if (this.botManager.recentLogins >= this.botManager.options.loginInterval.limit) {
+				// If the interval is hit and a Steam error occurred we won't be able to retry in the future, call again next time
+				setTimeout(() => this.login(), this.botManager.options.loginInterval.time);
 				return this.emit('log', 'error', `Maximum of logins hit for interval, blocking attempt`);
 			}
 
@@ -169,7 +171,11 @@ class Bot extends EventEmitter {
 			} else { // Check if we need to login into steamcommunity
 				this.communityLoggedIn()
 				.then(() => {
+					if (this.botManager.recentLogins > 0) {
+						this.botManager.recentLogins--;
+					}
 					this.emit('log', 'debug', 'Bot is logged in, not refreshing login');
+					delete this._loginTimeoutDuration; // Reset our login backoff
 				})
 				.catch(() => {
 					this.emit('log', 'debug', `Requesting web session`);

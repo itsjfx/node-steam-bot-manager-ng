@@ -27,7 +27,7 @@ Our BotManager, extends EventEmitter to have an in-built EventEmitter for loggin
     * [.addAndLoginToBots(bots)](#BotManager+addAndLoginToBots) ⇒ <code>Promise</code>
     * [.retryLogin(botIndex)](#BotManager+retryLogin)
     * [.login(botIndex)](#BotManager+login)
-    * [.loadInventories(appid, contextid, tradableOnly)](#BotManager+loadInventories) ⇒ <code>Promise</code>
+    * [.loadInventories(appid, contextid, tradableOnly, [retries], [language])](#BotManager+loadInventories) ⇒ <code>Promise</code>
     * [.botIndexFromSteamid(steamid)](#BotManager+botIndexFromSteamid) ⇒ <code>number</code>
     * [.botSteamidFromIndex(botIndex)](#BotManager+botSteamidFromIndex) ⇒ <code>string</code>
     * [.botFromId(id)](#BotManager+botFromId) ⇒ [<code>Bot</code>](#Bot)
@@ -169,17 +169,19 @@ Triggers a login for a bot.
 
 <a name="BotManager+loadInventories"></a>
 
-### botManager.loadInventories(appid, contextid, tradableOnly) ⇒ <code>Promise</code>
+### botManager.loadInventories(appid, contextid, tradableOnly, [retries], [language]) ⇒ <code>Promise</code>
 Loads all the inventories for the bots
 
 **Kind**: instance method of [<code>BotManager</code>](#BotManager)  
 **Returns**: <code>Promise</code> - - Promise object containing all the inventories for the bots. The botIndex is contained in each item.  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| appid | <code>int</code> | The Steam application ID of the app |
-| contextid | <code>int</code> | The ID of the context within the app you wish to retrieve |
-| tradableOnly | <code>boolean</code> | True to get tradeable items only |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| appid | <code>int</code> |  | The Steam application ID of the app |
+| contextid | <code>int</code> |  | The ID of the context within the app you wish to retrieve |
+| tradableOnly | <code>boolean</code> |  | True to get tradeable items only |
+| [retries] | <code>int</code> | <code>200</code> | Number of total retries until we stop loading all inventories |
+| [language] | <code>string</code> | <code>&quot;&#x27;english&#x27;&quot;</code> | Language of item descriptions |
 
 <a name="BotManager+botIndexFromSteamid"></a>
 

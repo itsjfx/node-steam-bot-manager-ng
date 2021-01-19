@@ -4,7 +4,7 @@
   "description": "Easily manage multiple Steam bots",
   "main": "./lib/index.js",
   "scripts": {
-	"doc": "jsdoc2md -f lib/index.js > doc.md"
+	"doc": "npx jsdoc2md -f lib/index.js classes/Bot.js > doc.md"
   },
   "repository": {
     "type": "git",

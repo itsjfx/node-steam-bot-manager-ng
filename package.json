@@ -4,7 +4,7 @@
   "description": "Easily manage multiple Steam bots",
   "main": "./lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+	"doc": "jsdoc2md -f lib/index.js > doc.md"
   },
   "repository": {
     "type": "git",

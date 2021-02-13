@@ -1,1 +1,0 @@
-npx jsdoc2md -f lib/index.js classes/Bot.js > doc.md

@@ -45,6 +45,7 @@ Our BotManager, extends EventEmitter to have an in-built EventEmitter for loggin
     * [.getBotsBySubtypeOnly(subtype)](#BotManager+getBotsBySubtypeOnly) ⇒ [<code>Array.&lt;Bot&gt;</code>](#Bot)
     * [.getBotByType(type)](#BotManager+getBotByType) ⇒ [<code>Bot</code>](#Bot)
     * [.getBotBySubtype(type, subtype)](#BotManager+getBotBySubtype) ⇒ [<code>Bot</code>](#Bot)
+    * [.acceptOffer(offer, [retries], [delay], [maxDelay], [factor])](#BotManager+acceptOffer)
 
 <a name="new_BotManager_new"></a>
 
@@ -382,6 +383,22 @@ Gets a bot by a subtype by rotating through the filtered bots.
 | --- | --- | --- |
 | type | <code>String</code> | the desired type |
 | subtype | <code>String</code> | the desired subtype |
+
+<a name="BotManager+acceptOffer"></a>
+
+### botManager.acceptOffer(offer, [retries], [delay], [maxDelay], [factor])
+Accept an offer with exponential backoff with a factor of 2.
+Exponential backoff only applies on retries after the first attempt to accept the offer.
+
+**Kind**: instance method of [<code>BotManager</code>](#BotManager)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| offer | <code>TradeOffer</code> |  | The offer to be accepted |
+| [retries] | <code>number</code> | <code>3</code> | Number of retries (not including the initial attempt to accept the offer) |
+| [delay] | <code>number</code> | <code>15000</code> | The delay applied on the first retry attempt |
+| [maxDelay] | <code>number</code> | <code>60000</code> | The maximum delay on a retry attempt |
+| [factor] | <code>number</code> | <code>2</code> | The exponential factor applied |
 
 <a name="Bot"></a>
 
